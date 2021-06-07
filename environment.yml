@@ -1,7 +1,9 @@
-name: diplodatos-ayvd
+name: diplodatos-datacuration
 dependencies:
   - numpy
   - pandas
   - matplotlib
   - statsmodels
   - seaborn=0.11
+  - missingno
+  - scikit-learn
