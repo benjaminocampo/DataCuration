@@ -1,0 +1,7 @@
+name: diplodatos-ayvd
+dependencies:
+  - numpy
+  - pandas
+  - matplotlib
+  - statsmodels
+  - seaborn=0.11
