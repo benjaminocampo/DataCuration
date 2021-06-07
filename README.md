@@ -1,15 +1,5 @@
 # Data Science, Machine Learning, and its Applications
 
-## About the Layout
-
-The solution of the assignments can be found in `labs`, divided in their
-corresponding parts. Files `guides.ipynb` are the notebooks with the exercises
-to solve. They may be split in several notebooks `exerciseN.ipynb` or kept in
-just one `exercises.ipynb` (it'll depend if it was considered necessary). They
-also have a `.py` version so they can be recognized by git.
-
-Directories `notebooks` and `slides`, have the material given by the class.
-
 ## Updating Notebooks
 
 This documentation describe two different ways to start working remotely.
