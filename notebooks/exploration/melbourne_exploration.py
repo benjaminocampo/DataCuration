@@ -63,6 +63,20 @@ melb_df = pd \
     .pipe(replace_columns, new_columns)
 
 melb_df
+# %% [markdown]
+# ## Normalización del conjunto de datos
+# Notar que se tiene incluido en un único *dataframe* información
+# correspondiente del suburbio y las viviendas. Claramente los datos asociados a
+# los suburbios se repiten por cada vivienda desaprovechando espacio de memoria
+# y complejizando el estudio de la estructura del conjunto de datos. Por ende se
+# puede [normalizar](https://en.wikipedia.org/wiki/Third_normal_form) la tabla
+# `melb_df` separandola en dos `melb_suburb_df` y `melb_housing_df`,
+# mantentiendo una *foreign key* en `melb_housing_df`. Esto permite unir ambas
+# tablas por medio de la operación `join` y obtener el *dataframe* original. Si
+# bien aún con esta organización no se obtiene una tercera forma normal, debido
+# a que las regiones en `melb_suburb_df` también pueden ser tratadas de manera
+# independiente, normalizar aún más complejizaría la realización de consultas
+# sobre el conjunto de datos.
 # %%
 housing_cols = [col for col in melb_df if col.startswith("housing")]
 suburb_cols = [col for col in melb_df if col.startswith("suburb")]
@@ -76,4 +90,8 @@ melb_housing_df = melb_df[housing_cols] \
         in zip(melb_suburb_df["suburb_name"], melb_suburb_df.index)
     }) \
     .rename(columns={"suburb_name": "suburb_id"})
+# %%
+melb_housing_df
+# %%
+melb_suburb_df
 # %%
