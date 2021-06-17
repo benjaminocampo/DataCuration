@@ -261,11 +261,18 @@ msno.bar(airbnb_df,figsize=(12, 6), fontsize=12, color='steelblue')
 # Notar como también, `weekly_price` y `monthly_price` corresponden a datos
 # faltantes situados en la categoría MNAR, es decir, a través de alguna perdida
 # sistemática siendo complicados de recuperar. Por otro lado, las columnas
-# `neighborhood_overview` y `transit` muestran se perdidas aleatorias. TODO:
+# `neighborhood_overview` y `transit` muestran ser perdidas aleatorias. TODO:
 # Explicar un poco mejor. Comentar que se podrían imputar las descripciones.
 # %%
 msno.matrix(airbnb_df,figsize=(12, 6), fontsize=12, color=[0,0,0.2])
 # %% [markdown]
+# Debido a que para agrupar por código postal en `airbnb_df` se necesita
+# realizar una agregación sobre valores no nulos, las columnas `weekly_price` y
+# `monthly_price` son desconsideradas debido a la poca cantidad de ejemplares.
+# `neighborhood_overview` y `transit` se les removió los valores nulos
+# lidiando con ellos en una etapa posterior del procesamiento una vez ya
+# combinados los *dataframes*.
+# %%
 airbnb_df = airbnb_df \
     .drop(columns=["weekly_price", "monthly_price"]) \
     .dropna()
@@ -274,12 +281,13 @@ airbnb_df
 # %%
 msno.bar(airbnb_df,figsize=(12, 6), fontsize=12, color='steelblue')
 # %% [markdown]
-# Cabe recalcar nuevamente que solo se incluirá información del suburbio de las
-# viviendas por lo tanto los datos deben combinarse con la tabla
-# `melb_suburb_df`. Esta es otra de las justificaciones por las cuales es
-# conveniente normalizar relaciones de datos.
+# Se obtuvo el siguiente conjunto de datos con 11636 datos por cada columna o
+# variables de interés. Ahora bien, para cada columna es de interés otro tipo de
+# información. Para este caso se decidió por obtener la frecuencia de palabras
+# en el caso de las descripciones, y el precio promedio de renta por día de las
+# viviendas agrupando por código postal.
 # %%
-airbnb_df = airbnb_df.dropna().groupby("zipcode") \
+airbnb_df = airbnb_df.groupby("zipcode") \
     .agg(
         suburb_description_wordcount=("description", frequent_words),
         suburb_neighborhoods_overview_wordcount=("neighborhood_overview", frequent_words),
@@ -290,11 +298,30 @@ airbnb_df = airbnb_df.dropna().groupby("zipcode") \
     .rename(columns={"zipcode": "suburb_postcode"})
 # %%
 airbnb_df
+# %% [markdown]
+# Cabe recalcar nuevamente que solo se incluirá información del suburbio de las
+# viviendas por lo tanto los datos deben combinarse con la tabla
+# `melb_suburb_df`. Esta es otra de las justificaciones por las cuales es
+# conveniente normalizar relaciones de datos. Por ende, para finalizar se
+# combinaron los *dataframes* `melb_suburb_df` y `airbnb_df` renombrando la
+# columna `zipcode` de este último.
 # %%
 melb_suburb_df = melb_suburb_df.merge(
     airbnb_df, how='left', on="suburb_postcode"
 )
 # %%
 msno.bar(melb_suburb_df,figsize=(12, 6), fontsize=12, color='steelblue')
+# %% [markdown]
+# Notar ahora que los datos faltantes correspondientes luego de combinar los
+# datos son debido a aquellos código postales que no figuraban en el conjunto de
+# datos de AirBnB.
+#
+# Para finalizar, `melb_suburb_df` y `melb_housing_df` fueron puestos a
+# disposición en servidores de FaMAF para su futura exploración. Estos pueden
+# encontrarse en:
+# - [Datos de
+#   viviendas](https://www.famaf.unc.edu.ar/~nocampo043/melb_housing_df.csv)
+# - [Datos de
+#   suburbios](https://www.famaf.unc.edu.ar/~nocampo043/melb_suburb_df.csv)
 
 # %%
