@@ -1,8 +1,10 @@
 # %% [markdown]
 # # Diplomatura en Ciencas de Datos, Aprendizaje Automático y sus Aplicaciones
 #
-# Autores: Matias Oria, Antonela Sambuceti, Pamela Pairo, Benjamín Ocampo %%
+# Autores: Matias Oria, Antonela Sambuceti, Pamela Pairo, Benjamín Ocampo
 # %% [markdown]
+# ## Introducción
+#
 # Se trabajó sobre el conjunto de datos de [la compentencia
 # Kaggle](https://www.kaggle.com/dansbecker/melbourne-housing-snapshot) para la
 # estimación de precios de ventas de propiedades en Melbourne, Australia.
@@ -12,19 +14,21 @@
 # accedió a través de un servidor de la Universidad Nacional de Córdoba para
 # facilitar su acceso remoto.
 #
-# Posteriormente se realizó la exploración y curación de los datos que lo
-# conforman centrandose en variables relevantes que favorezcan la estimación
-# objetivo.
-# 
-# La exploración fue realizada principalmente por medio de
-# [Pandas](https://pandas.pydata.org/) y librerias de manipulación de datos.
+# Con el fin de agilizar la exploración, se realizó una etapa de preprocesamiento
+# separando información de viviendas y suburbios. A su vez, agregando nueva
+# información proveniente de datos recolectados por [Tyler
+# Xie](https://www.kaggle.com/tylerx), disponibles en [una
+# publicación]((https://www.kaggle.com/tylerx/melbourne-airbnb-open-data?select=cleansed_listings_dec18.csv))
+# en su perfil de Kaggle.
 # %% [markdown]
 # ## Definición de funciones y constantes *helper*
+# TODO: Explicar que hay en esta celda, agregar docstrings, y especificación de
+# tipos.
 # %%
 import pandas as pd
 import nltk
-from pandas.io.pytables import attribute_conflict_doc
 import missingno as msno
+import numpy as np
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 nltk.download("stopwords")
@@ -56,31 +60,12 @@ def remove_unimportant_words(s):
     )
     return reduced_text
 
-def frequent_words(text_batch):
+def frequent_words(text_batch, threshold):
     joined_descritions = " ".join(
         remove_unimportant_words(text) for text in text_batch
     )
     tokens = word_tokenize(joined_descritions)
-    return nltk.FreqDist(tokens)
-
-def min_central_tendency(df, col, max_threshold):
-    tendency = [
-        (
-            threshold,
-            df[df[col] > threshold][col].mean(),
-            df[df[col] > threshold][col].median()
-        )
-        for threshold in range(int(df[col].min()), max_threshold)
-    ]
-
-    tendency_df = pd.DataFrame(tendency, columns=['threshold', 'mean', 'median'])
-    tendency_df["distance"] = abs(tendency_df["mean"] - tendency_df["median"])
-    best_threshold = tendency_df.idxmin()["distance"]
-
-    return (
-        tendency_df.melt(id_vars='threshold', var_name='metric'),
-        best_threshold
-    )
+    return nltk.FreqDist(tokens).most_common(threshold)
 
 # %% [markdown]
 # ## Renombrado de columnas
@@ -90,7 +75,7 @@ def min_central_tendency(df, col, max_threshold):
 # programación y caractericen de mejor manera los datos almacenados. En
 # particular, columnas como `Car`, `Distance`, `Date`, y `Method`, carecen de
 # expresividad y no reflejan que está registrado por ellas. Otras solo fueron
-# escritas en minúsculas y separadas por *underscores*. Por último se
+# escritas en minúsculas y separadas por *underscores*. Por último, se
 # representaron con prefijos aquellas que relacionan propiedades de viviendas y
 # suburbios.
 # %%
@@ -102,7 +87,8 @@ new_columns = {
         "Suburb": "name",
         "Propertycount": "property_count",
         "Regionname": "region_name",
-        "Postcode": "postcode"
+        "Postcode": "postcode",
+        "CouncilArea": "council_area"
     },
     "housing": {
         "Address": "address",
@@ -113,7 +99,6 @@ new_columns = {
         "Car": "garage_count",
         "Landsize": "land_size",
         "BuildingArea": "building_area",
-        "CouncilArea": "council_area",
         "Type": "type",
         "Bathroom": "bathroom_count",
         "Bedroom2": "bedroom_count",
@@ -135,11 +120,11 @@ melb_df
 # Notar que los datos asociados a los suburbios se repiten por cada vivienda,
 # debido a que se encuentran almacenados en un único *dataframe*. Por ejemplo,
 # las filas asociadas a los departamentos del suburbio *Abbotsford* tendrán el
-# mismo `suburb_name`, `suburb_postcode`, `suburb_region_name`, y
-# `suburb_property_count` desaprovechando espacio de memoria y complejizando el
-# estudio de la estructura del conjunto de datos. Por ende se puede
-# [normalizar](https://en.wikipedia.org/wiki/Third_normal_form) la tabla
-# `melb_df` separandola en dos `melb_suburb_df` y `melb_housing_df`,
+# mismo `suburb_name`, `suburb_postcode`, `suburb_region_name`,
+# `suburb_council_area`, y `suburb_property_count` desaprovechando espacio de
+# memoria y complejizando el estudio de la estructura del conjunto de datos. Por
+# ende se puede [normalizar](https://en.wikipedia.org/wiki/Third_normal_form) la
+# tabla `melb_df` separandola en dos `melb_suburb_df` y `melb_housing_df`,
 # mantentiendo una *foreign key* en `melb_housing_df`. Esto permite unir ambas
 # tablas por medio de la operación `join` y obtener el *dataframe* original. Si
 # bien aún con esta organización no se obtiene una tercera forma normal, debido
@@ -150,14 +135,66 @@ melb_df
 # Para separar `melb_df` como se mencionó, se obtienen las columnas de ambas
 # categorias por medio de sus prefijos `housing` y `suburb` y se filtran para
 # obtener dos *dataframes* distintos. Posteriormente, se remueven los duplicados
-# de la tabla asociada a los suburbios y les agregamos nuevos indices.
-# Finalmente, se agregan esos indices al *dataframe* de las viviendas acorde a
-# como se encontraban en el original.
+# de la tabla asociada a los suburbios.
 # %%
 housing_cols = [col for col in melb_df if col.startswith("housing")]
 suburb_cols = [col for col in melb_df if col.startswith("suburb")]
 
-melb_suburb_df = melb_df[suburb_cols].drop_duplicates().reset_index(drop=True)
+melb_suburb_df = melb_df[suburb_cols].drop_duplicates()
+melb_suburb_df
+# %% [markdown]
+# Sin embargo, notar que al aplicar `drop_duplicates` para eliminar las filas
+# que tengan como entradas repetidas las 5 columnas seleccionadas aún así se
+# obtiene información repetida en los suburbios. Esto se debe a que la columna
+# `suburb_council_area` tiene no solo datos faltantes, si no que también para un
+# suburbio, información distinta. Por ejemplo para el caso del suburbio
+# `Alphington`:
+# %%
+melb_suburb_df[melb_suburb_df["suburb_name"] == "Alphington"]
+# %% [markdown]
+# En este caso, las entradas para todas las columnas son las mismas salvo la de
+# `suburb_council_area`. De manera similar, esto ocurre con otros suburbio.
+# %%
+(
+    melb_suburb_df[["suburb_name", "suburb_council_area"]]
+        .groupby("suburb_name")
+        .size()
+)
+# %% [markdown]
+# Ahora bien, las entradas distintas no se puede considerar que son
+# inconsistentes ya que hay suburbios en Melbourne que dependen de dos
+# departamentos gubernamentales como es el caso de `Alphington`. Se agruparán en
+# listas todos los departamentos a los cuales un suburbio pertenece. Si todas
+# las entradas de un suburbio presentan valores nulos, será dejado como faltante
+# para ser imputado en la etapa de exploración.
+# %%
+councils_df = (
+    melb_suburb_df[["suburb_name", "suburb_council_area"]]
+        .groupby("suburb_name")
+        .agg(lambda councils: 
+            np.nan 
+            if councils.count() == 0
+            else list(councils.dropna())
+        )
+)
+# %%
+councils_df
+# %%
+melb_suburb_df = (
+    melb_suburb_df
+        .drop(columns="suburb_council_area")
+        .drop_duplicates()
+        .merge(councils_df, on="suburb_name")
+)
+melb_suburb_df
+# %% [markdown]
+# Notar ahora como si se obtienen valores únicos para los suburbios, manteniendo
+# en listas de python todos los departamentos a los cuales un suburbio
+# pertenece. También, puede verse que al combinar los datos los índices fueron
+# alterados obteniendo un total de 314. Finalmente, estos índices se agregan al
+# conjunto de datos de las viviendas en aquellos posiciones donde se tenía un
+# suburbio asociado siendo su *foreign key*.
+# %%
 melb_housing_df = melb_df[housing_cols + ["suburb_name"]] \
     .replace({
         suburb_name: suburb_id
@@ -175,7 +212,8 @@ melb_suburb_df
 # un único código postal para este conjunto de datos. Notar que esta
 # caracteristica no es debido a un error introducido al eliminar los duplicados,
 # ya que se hizo considerando `suburb_cols` que relacionan toda la información
-# de los suburbios.
+# de los suburbios. Si ese hubiese sido el caso, se tendría que haber realizado
+# algo similar que con `suburb_council_area`.
 #
 # Otro beneficio de esta representación es que permite que un código postal se
 # repita para más de un suburbio. Este es el caso para la ciudad de Melbourne y
@@ -184,7 +222,7 @@ melb_suburb_df
 # %%
 melb_suburb_df[["suburb_name", "suburb_postcode"]].value_counts()
 # %% [markdown]
-# ## Combinación de conjunto de datos
+# ## Combinación de conjuntos de datos
 # Con el fin de estimar con mayor presición el valor de venta una propiedad se
 # aumentarán los datos actuales utilizando otro conjunto de datos obtenido por
 # publicaciones de la plataforma de AirBnB en Melbourne en el año
@@ -287,11 +325,17 @@ msno.bar(airbnb_df,figsize=(12, 6), fontsize=12, color='steelblue')
 # en el caso de las descripciones, y el precio promedio de renta por día de las
 # viviendas agrupando por código postal.
 # %%
+ten_most_freq_words = lambda text_batch: frequent_words(text_batch, 10)
+
 airbnb_df = airbnb_df.groupby("zipcode") \
     .agg(
-        suburb_description_wordcount=("description", frequent_words),
-        suburb_neighborhoods_overview_wordcount=("neighborhood_overview", frequent_words),
-        suburb_transit_wordcount=("transit", frequent_words),
+        suburb_description_wordcount=(
+            "description", ten_most_freq_words
+        ),
+        suburb_neighborhoods_overview_wordcount=(
+            "neighborhood_overview", ten_most_freq_words
+        ),
+        suburb_transit_wordcount=("transit", ten_most_freq_words),
         suburb_rental_dailyprice=("price", "mean")
     ) \
     .reset_index() \
@@ -310,6 +354,8 @@ melb_suburb_df = melb_suburb_df.merge(
     airbnb_df, how='left', on="suburb_postcode"
 )
 # %%
+melb_suburb_df
+# %%
 msno.bar(melb_suburb_df,figsize=(12, 6), fontsize=12, color='steelblue')
 # %% [markdown]
 # Notar ahora que los datos faltantes correspondientes luego de combinar los
@@ -323,5 +369,4 @@ msno.bar(melb_suburb_df,figsize=(12, 6), fontsize=12, color='steelblue')
 #   viviendas](https://www.famaf.unc.edu.ar/~nocampo043/melb_housing_df.csv)
 # - [Datos de
 #   suburbios](https://www.famaf.unc.edu.ar/~nocampo043/melb_suburb_df.csv)
-
 # %%
