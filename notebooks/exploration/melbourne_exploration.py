@@ -26,6 +26,8 @@ import pandas as pd
 import numpy as np
 import seaborn
 import matplotlib.pyplot as plt
+import geopandas as gpd
+import requests
 
 def clean_outliers(df, column_name):
     col = df[column_name]
@@ -74,6 +76,8 @@ relevant_columns = {
         "land_size",
         "cbd_distance",
         "year_built",
+        "lattitude",
+        "longitude"
     ],
     "suburb": [
         "council_area",
@@ -85,7 +89,7 @@ relevant_columns = {
     ]
 }
 
-housing_columns = prefix_labels("housing", relevant_columns["housing"])
+housing_columns = prefix_labels("housing", relevant_columns["housing"]) + ["suburb_id"]
 suburb_columns = prefix_labels("suburb", relevant_columns["suburb"])
 
 melb_housing_df = pd.read_csv(
@@ -251,7 +255,7 @@ for ax, type in zip(axes, types):
         x="housing_price",
         y="housing_selling_method"
     )
-    ax.ticklabel_format(style='plain', axis='x')
+    ax.ticklabel_format(style="plain", axis="x")
 # %% [markdown]
 # Observar que la distribución de la variable `housing_price` es similar en cada
 # método de venta. Los valores medios están cercanos al millón extendiendose
@@ -294,14 +298,14 @@ seaborn.barplot(
             best_sellers_df.index
         )
     ],
-    x='housing_seller_agency',
-    y='housing_price',
+    x="housing_seller_agency",
+    y="housing_price",
     estimator=np.mean
 )
 plt.xlabel("Agencia de ventas")
 plt.ylabel("Precio Promedio de Ventas")
 plt.xticks(rotation=90)
-plt.ticklabel_format(style='plain', axis='y')
+plt.ticklabel_format(style="plain", axis="y")
 # %% [markdown]
 # Se puede observar que algunos vendedores en promedio han vendido casas a
 # precios más altos que otros, por ejemplo el vendedor `Marshall` sobresale por
@@ -310,4 +314,293 @@ plt.ticklabel_format(style='plain', axis='y')
 # vendedor y no por otro tipo de variable, como ser el tipo de casa, la
 # ubicación o bien su tamaño o composición.
 # %% [markdown]
-# ## 
+# ### Región
+# Para analizar las medidas de tendencia central del precio de las viviendas por
+# región se realizó un boxplot como se muestra a continuación.
+# %%
+# %%
+plt.figure(figsize=(16, 8))
+seaborn.boxplot(
+    x="suburb_region_name",
+    y="housing_price",
+    palette="Set2",
+    data=melb_housing_df.join(melb_suburb_df, on="suburb_id")
+)
+plt.xticks(rotation=40)
+plt.ylabel("Precio de la vivienda")
+plt.xlabel("Región")
+plt.ticklabel_format(style="plain", axis="y")
+# %% [markdown]
+#`Souther Metropolitan` es la región con la media mas alta en el precio de las
+# viviendas y también no posee outliers. Luego, se observa un gran número de
+# outliers para las regiones `Northern Metropolitan`, `Western Metropolitan`,
+# `Eastern Metropolitan` y `SouthEastern Metropolitan`. `Western Victoria` es la
+# región con una media y mediana mas baja en el precio de las viviendas.
+#
+# TODO: Los outliers ya fueron removidos, está bien decir que se siguen observando?
+# %% [markdown]
+# La siguiente tabla muestra que `Southern Metropolitan` es la región en donde se
+# registró una mayor cantidad de ventas de viviendas (4377) a diferencia de
+# `Eastern Victoria`, `Northern Victoria` y `Western Victoria` que muestran menos de
+# 100.
+# %%
+(
+    melb_housing_df
+        .join(melb_suburb_df, on="suburb_id")
+        .loc[:, "suburb_region_name"]
+        .value_counts()
+)
+# %% [markdown]
+# Analizando las medidas de tendencia central para las variables `suburb_name` y
+# `housing_price` se observa que algunos suburbios tienen una única vivienda con
+# precio y otros como `Boroondara` tiene mas de 1000 viviendas. Esto muestra la
+# disparidad en la cantidad de viviendas en los diferentes suburbios. 
+# TODO: Es el suburbio o el departamento? Se muestra una tabla de medidas
+# descriptivas pero solo se habla del conteo, hace falta hacer describe?
+# %%
+(
+    melb_housing_df
+        .join(melb_suburb_df, on="suburb_id")
+        .loc[:, "suburb_council_area"]
+        .value_counts()
+)
+# %% [markdown]
+# ## Geolocalización de propiedades por región
+# El objetivo es ver la geolocalización de los datos en las diferentes regiones
+# del Territorio de Victoria, Australia. Para  A continuación se muestra una
+# imagen extraída de Wikipedia.
+#
+# <img src="../graphs/melbourne_by_region.png" alt="melbourne by region">
+#
+# Para lograr esto se utiliza el servicio de [wfs de
+# geoserver](https://data.gov.au/geoserver) donde se obtienen una representación
+# geométrica de las regiones
+# %%
+geoserver = "https://data.gov.au/geoserver"
+route = "vic-state-electoral-boundaries-psma-administrative-boundaries"
+service = "wfs"
+
+wfsurl = f"{geoserver}/{route}/{service}"
+
+params = dict(
+    service="WFS",
+    version="2.0.0",
+    request="GetFeature",
+    typeName=(
+        route + ":ckan_a0d8838b_2423_4c8b_a7d9_b04eb240a2b1"
+    ),
+    outputFormat="json"
+)
+
+region_location_df = gpd.GeoDataFrame.from_features(
+    requests.get(wfsurl, params=params).json()
+).set_crs("EPSG:3110")
+
+region_location_df.head()
+# %% [markdown]
+# De este *dataframe* se obtiene información correspondiente a las divisiones
+# gubernamentales de melbourne. En particular, la columna `vic_stat_2` es
+# aquella que contiene los nombres de regiones, y `geometry` su representación
+# geométrica limítrofe. La proyección sobre las zonas de Melbourne es dada por
+# el método `set_crs` que establece coordenadas arbitrarias del espacio en una
+# ubicación particular del planeta. Sin embargo, hay varias zonas que se
+# muestran en los alrededores de Melbourne, por ende, se filtran por aquellas
+# que correspondan a las que se tiene registro en el conjunto de datos inicial.
+# %%
+key_regions = [
+    region.upper()
+    for region in
+    melb_suburb_df["suburb_region_name"].unique()
+]
+
+region_location_df = region_location_df[["vic_stat_2", "geometry"]]
+only_key_regions = region_location_df["vic_stat_2"].isin(key_regions)
+
+region_location_df = (
+    region_location_df[only_key_regions]
+        .dissolve(by="vic_stat_2")
+        .reset_index()
+)
+region_location_df
+# %% [markdown]
+# Similarmente, se necesita convertir las coordenadas de las propiedades
+# vendidas en puntos geométricos de GeoPandas para ser graficados junto a las
+# zonas recolectadas. En particular, en este caso serán representados como un
+# objeto `POINT`. El *dataframe* subyacente es el siguiente:
+# %%
+house_location_cols = [
+    "housing_cbd_distance",
+    "housing_lattitude",
+    "housing_longitude"
+]
+suburb_location_cols = [
+    "suburb_region_name",
+    "suburb_property_count"
+]
+
+house_location_df = (
+    melb_housing_df[house_location_cols + ["housing_price", "suburb_id"]]
+        .join(melb_suburb_df[suburb_location_cols], on="suburb_id")
+)
+
+house_location_df = gpd.GeoDataFrame(
+    house_location_df,
+    geometry=gpd.points_from_xy(
+        house_location_df["housing_longitude"],
+        house_location_df["housing_lattitude"]
+    )
+).set_crs("EPSG:3110")
+
+house_location_df.head()
+# %% [markdown]
+# Finalmente, se ubican los polígonos que representan las zonas limítrofes de
+# Melbourne superponiendo las ubicaciones de las viviendas, para obtener una
+# ubicación geográfica de las propiedades. El mapa muestra que la mayoria de las
+# ventas (en color rojo) se concentran en la región de Metropolitana
+# (`South-Eastern Metropolitan`, `Southern Metropolitan`, `Western Metropolitan` y
+# `Northern Metropolitan`).
+# %%
+background = region_location_df.plot(
+    column="vic_stat_2",
+    edgecolor="black",
+    figsize=(15, 15),
+    legend=True
+)
+
+properties = house_location_df.plot(
+    ax=background,
+    marker="o",
+    color="red"
+)
+background.set(title="Regiones del Territorio de Victoria, Australia")
+plt.ylabel("Latitude")
+plt.xlabel("Longitude")
+# %% [markdown]
+# Para observar detalladamente la zona metropolitana se filtran las entradas de
+# `region_location_df` y se incluye en el mapa la variable
+# `housing_cbd_distance` que indica la distancia que una propiedad tiene del
+# distrito central comercial, para visualizar la existencia de algún patrón
+# espacial. Se muestra que las viviendas mas cerca al centro (valores de
+# distancia cercanos a cero de color naranja claro), se encuentran en `Southern
+# Metropolitan` donde también se encuentra la ciudad de Melbourne.
+# %%
+metropolitan_regions = [
+    region_name
+    for region_name in key_regions
+    if region_name.endswith("METROPOLITAN")
+]
+
+only_metropolitan = (
+    region_location_df["vic_stat_2"]
+        .isin(metropolitan_regions)
+)
+region_location_df = region_location_df[only_metropolitan]
+# %%
+cmap= seaborn.color_palette("flare", as_cmap=True)
+
+background = region_location_df.plot(
+    column="vic_stat_2",
+    edgecolor="black",
+    figsize=(11, 11),
+    legend=True
+)
+properties = house_location_df.plot(
+    ax=background,
+    marker="o",
+    markersize=3,
+    column="housing_cbd_distance",
+    cmap=cmap
+)
+
+background.set(title="Área Metropolitana- Victoria, Australia")
+
+plt.ylabel("Latitude")
+plt.xlabel("Longitude")
+
+fig = properties.get_figure()
+
+cbax = fig.add_axes([0.95, 0.2, 0.04, 0.60])   
+cbax.set_title("Distancia al centro")
+
+sm = plt.cm.ScalarMappable(
+    cmap=cmap,
+    norm=plt.Normalize(
+        vmin=min(house_location_df["housing_cbd_distance"]),
+        vmax=max(house_location_df["housing_cbd_distance"])
+    )
+)
+fig.colorbar(sm, cax=cbax, format="%d")
+# %% [markdown]
+# También, se realizó otro mapa incluyendo a la variable `housing_price`, el
+# cual muestra que los precios de vivienda mas altos se localizan en las
+# regiones de `Southern Metropolitan` y `Estearn Metropolitan`.
+# TODO: Se repite el código del gráfico. Capaz se podría hacer una función.
+# %%
+cmap= seaborn.color_palette("flare", as_cmap=True)
+
+background = region_location_df.plot(
+    column="vic_stat_2",
+    edgecolor="black",
+    figsize=(11, 11),
+    legend=True
+)
+properties = house_location_df.plot(
+    ax=background,
+    marker="o",
+    markersize=3,
+    column="housing_price",
+    cmap=cmap
+)
+
+background.set(title="Área Metropolitana- Victoria, Australia")
+
+plt.ylabel("Latitude")
+plt.xlabel("Longitude")
+
+fig = properties.get_figure()
+
+cbax = fig.add_axes([0.95, 0.2, 0.04, 0.60])   
+cbax.set_title("Precio de venta")
+
+sm = plt.cm.ScalarMappable(
+    cmap=cmap,
+    norm=plt.Normalize(
+        vmin=min(house_location_df["housing_price"]),
+        vmax=max(house_location_df["housing_price"])
+    )
+)
+fig.colorbar(sm, cax=cbax, format="%d")
+# %% [mardown]
+# Estas observarciones dejan en evidencia que la localización de las viviendas
+# puede influir en el precio de las mismas. En este sentido, se decide incluir
+# las variables `suburb_region_name` y `suburb_name` en futuros análisis.
+# Respecto a la variable `housing_cbd_distance`, su mapa correspondiente muestra
+# que los valores cercanos al centro se ubican en la región `Southern
+# Metropolitan` y aumenta a medida que se aleja del mismo y cambia de región.
+# Por lo tanto, a partir de conocer la región en la que se ubica una vivienda se
+# puede inferir su valor de distancia y por ende `housing_cbd_distance`
+# ofrecería información redundante y no es incluida en los futuros análisis.
+# %% [markdown]
+# ### Cantidad de baños
+# Notar que la cantidad de baños de las viviendas vendidas se encuentran entre 1
+# y 3 siendo valores más atípicos las que superan este rango. Por otro lado, se
+# encuentran propiedades con una cantidad de 0 baños lo cual resulta peculiar
+# recordando que los tipos de hogares en venta eran casas, duplex, y casas
+# adosadas.
+# %%
+melb_housing_df[["housing_bathroom_count"]].value_counts()
+# %% [markdown]
+# Visualizando aquellas propiedades sin baños se logra ver por sus coordenadas
+# de latitud y longitud que se encuentran realmente cercas entre sí, llegando a
+# pensar que fueron dados por un error sistemático. Además, dado que no se
+# encuentran otras irregularidades en otras columnas (salvo por la falta de
+# entradas `housing_building_area`, y `housing_year_built`) no se considera que
+# podrían ser descartadas. Por ende, se procedió a delimitar que la mínima cantidad
+# de baños posibles sería de 1, cambiando estos valores en 0.
+# %%
+min_bathroom_count = 1
+melb_housing_df.loc[
+    melb_housing_df["housing_bathroom_count"] < min_bathroom_count,
+    "housing_bathroom_count"
+] = 1
+# %%
