@@ -597,10 +597,79 @@ melb_housing_df[["housing_bathroom_count"]].value_counts()
 # entradas `housing_building_area`, y `housing_year_built`) no se considera que
 # podrían ser descartadas. Por ende, se procedió a delimitar que la mínima cantidad
 # de baños posibles sería de 1, cambiando estos valores en 0.
+# TODO: ¿Se puede hacer algo con el warning de actualización en un slice?
+# Capaz antes de hacer eliminar los outliers.
 # %%
 min_bathroom_count = 1
 melb_housing_df.loc[
     melb_housing_df["housing_bathroom_count"] < min_bathroom_count,
     "housing_bathroom_count"
 ] = 1
+# %% [markdown]
+# Ahora bien, para aquellas viviendas que presenten entre 3 a más baños se
+# agruparán en una sola categoría con el fin de asegurar que los grupos 1, 2, 3,
+# y 3 o más baños, presenten una cantidad mínima de registros.
+# TODO: Agrupar baños.
+# %% [markdown]
+# ### Cantidad de ambientes o habitaciones
 # %%
+melb_housing_df[["housing_room_count"]].value_counts()
+# %% [markdown]
+# De manera similar se puede ver que la cantidad de ambientes varían entre 1 a
+# 5, siendo valores menos frecuentes aquellas que tienen 6 o más. Por ende, se
+# decide agrupar esta categoría de manera similar que en el caso de los baños.
+# Algo a notar, es que no se puede asegurar que `housing_room_count` considere
+# `housing_bedroom_count` en su conteo. Por ejemplo, en el caso de la siguiente
+# tabla puede verse que 500 viviendas tienen un total de 2 baños y 2 ambientes,
+# siendo que las propiedades podrían tener una sala de estar, dormitorios, o una
+# sala dedicada para la cocina. Otros casos menos frecuentes son los registros
+# que presentan una mayor cantidad de baños que ambientes.
+# TODO: Agrupar por ambientes similar a los baños.
+# %%
+pd.crosstab(
+    melb_housing_df["housing_bathroom_count"],
+    melb_housing_df["housing_room_count"]
+)
+# %% [markdown]
+# ### Influencia en el precio de garajes, ambientes y baños
+# Otra pregunta interesante es si tener una mayor cantidad de instalaciones
+# influye en el precio de venta de una propiedad.
+# TODO: Combinar en una sola figura que muestre los 3 gráficos.
+# %%
+plt.figure(figsize=(16, 8))
+seaborn.boxplot(
+    x="housing_room_count",
+    y="housing_price",
+    data=melb_housing_df
+)
+plt.xticks(rotation=40)
+plt.ylabel("Precio de la vivienda")
+plt.xlabel("Cantidad de ambientes")
+plt.ticklabel_format(style='plain', axis='y')
+# %%
+plt.figure(figsize=(16, 8))
+seaborn.boxplot(
+    x="housing_bathroom_count",
+    y="housing_price",
+    data=melb_housing_df
+)
+plt.xticks(rotation=40)
+plt.ylabel("Precio de la vivienda")
+plt.xlabel("Cantidad de baños")
+plt.ticklabel_format(style='plain', axis='y')
+# %%
+plt.figure(figsize=(16, 8))
+seaborn.boxplot(
+    x="housing_garage_count",
+    y="housing_price",
+    data=melb_housing_df
+)
+plt.xticks(rotation=40)
+plt.ylabel("Precio de la vivienda")
+plt.xlabel("Cantidad de garajes")
+plt.ticklabel_format(style='plain', axis='y')
+# %% [markdown]
+# Se puede ver un aumento de la variabilidad del precio a medida que aumentan la
+# cantidad de ambientes y baños, a diferencia de la disponibilidad de garajes.
+# TODO: Explicar mejor esta parte, capaz se podría usar scatterplots en lugar de
+# graficos de caja ya que no se menciona mucho sobre medidas descriptivas.
