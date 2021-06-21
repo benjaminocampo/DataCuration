@@ -1,4 +1,6 @@
 name: diplodatos-datacuration
+channels:
+  - conda-forge
 dependencies:
   - numpy
   - pandas
@@ -8,4 +10,5 @@ dependencies:
   - missingno
   - scikit-learn
   - nltk
-  - plotly=4.14.3
+  - geopandas
+  - requests
