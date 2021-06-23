@@ -27,18 +27,32 @@ def clean_outliers(df: pd.DataFrame,
     times standard deviations apart from the mean. Returns both, entries that
     hold and miss the condition.
     """
-
     col = df[column_name]
     mask_outlier = np.abs(col - col.mean()) <= (2.5 * col.std())
     return df[mask_outlier], df[~mask_outlier]
+
+
+def to_categorical(column: pd.Series, bin_size: int, min_cut: int,
+                   max_cut: int) -> pd.Series:
+    """
+    Returns a pandas series where each value of @column is replaced by an
+    interval that contains it. Intervals are generated from @min_cut to @max_cut
+    and have size @bin_size.
+    """
+    if min_cut is None:
+        min_cut = int(round(column.min())) - 1
+    value_max = int(np.ceil(column.max()))
+    max_cut = min(max_cut, value_max)
+    intervals = [(x, x + bin_size) for x in range(min_cut, max_cut, bin_size)]
+    if max_cut != value_max:
+        intervals.append((max_cut, value_max))
+    return pd.cut(column, pd.IntervalIndex.from_tuples(intervals))
 # %%
 URL_MELB_HOUSING_DATA = "https://www.famaf.unc.edu.ar/~nocampo043/melb_housing_df.csv"
 URL_MELB_SUBURB_DATA = "https://www.famaf.unc.edu.ar/~nocampo043/melb_suburb_df.csv"
 
 melb_housing_df = pd.read_csv(URL_MELB_HOUSING_DATA)
-melb_suburb_df = pd.read_csv(
-    URL_MELB_SUBURB_DATA
-)
+melb_suburb_df = pd.read_csv(URL_MELB_SUBURB_DATA)
 # %%
 melb_suburb_df
 # %%
@@ -100,25 +114,15 @@ melb_housing_df[["housing_room_count"]].value_counts()
 # valores menos frecuentes aquellas que tienen 5 o más. Por ende, se decide
 # agrupar esta categoría.
 # %%
-gt5_df = melb_housing_df["housing_room_count"].replace({
-    1: "1",
-    2: "2",
-    3: "3",
-    4: "4",
-    5: "5 o más",
-    6: "5 o más",
-    7: "5 o más",
-    8: "5 o más",
-    10: "5 o más"
-})
-
-melb_housing_df.loc[:, "housing_room_categ"] = gt5_df
+# Explicitly create a copy after adding the column to avoid chaining indexes
+melb_housing_df = melb_housing_df.assign(housing_room_segment=to_categorical(
+    melb_housing_df["housing_room_count"], bin_size=1, min_cut=None,
+    max_cut=4))
 # %%
 plt.figure(figsize=(16, 8))
-seaborn.boxplot(x="housing_room_categ",
+seaborn.boxplot(x="housing_room_segment",
                 y="housing_price",
-                data=melb_housing_df.sort_values(by="housing_room_categ"))
-plt.xticks(rotation=40)
+                data=melb_housing_df)
 plt.ylabel("Precio de la vivienda")
 plt.xlabel("Cantidad de ambientes")
 plt.ticklabel_format(style='plain', axis='y')
@@ -147,21 +151,16 @@ melb_housing_df.loc[lt_one_bathroom, "housing_bathroom_count"] = 1
 # agruparán en una sola categoría con el fin de asegurar que los grupos 1, 2,
 # y 3 o más baños, presenten una cantidad mínima de registros.
 # %%
-gt_two_df = melb_housing_df["housing_bathroom_count"].replace({
-    1: "1",
-    2: "2",
-    3: "3 o más",
-    4: "3 o más",
-    5: "3 o más",
-    6: "3 o más",
-    7: "3 o más",
-    8: "3 o más"
-})
-melb_housing_df.loc[:, "housing_bathroom_categ"] = gt_two_df
+melb_housing_df = melb_housing_df.assign(
+    housing_bathroom_segment=to_categorical(
+        melb_housing_df["housing_room_count"],
+        bin_size=1,
+        min_cut=None,
+        max_cut=2))
 # %%
 seaborn.catplot(data=melb_housing_df,
                 y="housing_price",
-                x="housing_bathroom_categ",
+                x="housing_bathroom_segment",
                 height=4,
                 aspect=2)
 # %% [markdown]
@@ -173,25 +172,16 @@ seaborn.catplot(data=melb_housing_df,
 # %%
 melb_housing_df["housing_garage_count"].value_counts()
 # %%
-gt_four_df = melb_housing_df["housing_garage_count"].replace({
-    0: "0",
-    1: "1",
-    2: "2",
-    3: "3",
-    4: "4 o más",
-    5: "4 o más",
-    6: "4 o más",
-    7: "4 o más",
-    8: "4 o más",
-    9: "4 o más",
-    10: "4 o más"
-})
-melb_housing_df.loc[:, "housing_garage_categ"] = gt_four_df
+melb_housing_df = melb_housing_df.assign(housing_garage_segment=to_categorical(
+    melb_housing_df["housing_garage_count"],
+    bin_size=1,
+    min_cut=None,
+    max_cut=2))
 # %%
 plt.figure(figsize=(16, 8))
-seaborn.boxplot(x="housing_garage_categ",
+seaborn.boxplot(x="housing_garage_segment",
                 y="housing_price",
-                data=melb_housing_df.sort_values(by="housing_garage_categ"))
+                data=melb_housing_df)
 plt.xticks(rotation=40)
 plt.ylabel("Precio de la vivienda")
 plt.xlabel("Cantidad de garages")
@@ -288,7 +278,9 @@ plt.ticklabel_format(style="plain", axis="x")
 # %%
 (
     melb_housing_df[["housing_selling_method", "housing_price"]]
-        .groupby("housing_selling_method").describe().round(2)
+        .groupby("housing_selling_method")
+        .describe()
+        .round(2)
 )
 # %%
 plt.figure(figsize=(8,8))
@@ -339,8 +331,6 @@ best_sellers_df = (
 )
 # %%
 best_sellers_df.sum()
-# %%
-best_sellers_df.index
 # %%
 fig = plt.figure(figsize=(12, 12))
 seaborn.barplot(
@@ -579,24 +569,25 @@ fig.colorbar(sm, cax=cbax, format="%d")
         .size()
 )
 # %%
-victorian_region_df = melb_suburb_df["suburb_region_name"].replace({
-    "Western Victoria": "Victoria",
-    "Eastern Victoria": "Victoria",
-    "Northern Victoria": "Victoria"
-})
-melb_suburb_df.loc[:, "suburb_region_categ"] = victorian_region_df
+melb_suburb_df = melb_suburb_df.assign(
+    suburb_region_segment=melb_suburb_df["suburb_region_name"].replace(
+        {
+            "Western Victoria": "Victoria",
+            "Eastern Victoria": "Victoria",
+            "Northern Victoria": "Victoria"
+        }))
 # %%
 (
     melb_housing_df
-        .join(melb_suburb_df["suburb_region_categ"], on="suburb_id")
-        .groupby("suburb_region_categ")
+        .join(melb_suburb_df["suburb_region_segment"], on="suburb_id")
+        .groupby("suburb_region_segment")
         .size()
 )
 # %%
 plt.figure(figsize=(8, 8))
 seaborn.boxenplot(data=melb_housing_df.join(
-    melb_suburb_df["suburb_region_categ"], on="suburb_id"),
-                  x="suburb_region_categ",
+    melb_suburb_df["suburb_region_segment"], on="suburb_id"),
+                  x="suburb_region_segment",
                   y="housing_price")
 plt.ticklabel_format(style="plain", axis="y")
 plt.xticks(rotation=40)
@@ -617,3 +608,4 @@ plt.xticks(rotation=40)
         .loc[:, "suburb_council_area"]
         .value_counts()
 )
+# %%
