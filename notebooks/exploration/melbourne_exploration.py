@@ -22,6 +22,11 @@ import missingno as msno
 
 def clean_outliers(df: pd.DataFrame,
                    column_name: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    """
+    Filters out entries of @df that have in @column_name values which are 2.5
+    times standard deviations apart from the mean. Returns both, entries that
+    hold and miss the condition.
+    """
 
     col = df[column_name]
     mask_outlier = np.abs(col - col.mean()) <= (2.5 * col.std())

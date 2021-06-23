@@ -41,7 +41,18 @@ nltk.download('punkt')
 stopwords = set(nltk.corpus.stopwords.words("english"))
 
 
-def replace_columns(df: pd.DataFrame, new_columns: Dict[str, str]) -> pd.DataFrame:
+def replace_columns(df: pd.DataFrame, new_columns: Dict[str, Dict[str, str]]) -> pd.DataFrame:
+    """
+    Renames the columns in @df according to @new_columns. Names to replace need
+    to be organized in categories, as the example shows, so then the resulting
+    columns will be assigned that category as a prefix.
+
+    <category>: {
+        <old_name_1> : <new_name_1>
+        <old_name_2> : <new_name_2>
+        ...
+    }
+    """
     new_col_names = {
         original_name: category + '_' + new_name
         for category, cols in new_columns.items()
@@ -52,7 +63,7 @@ def replace_columns(df: pd.DataFrame, new_columns: Dict[str, str]) -> pd.DataFra
 
 def remove_unimportant_words(s: str) -> str:
     """
-    Removes from the string @s all the stopwords, digits, and special chars
+    Removes from the string @s all the stopwords, digits, and special chars.
     """
     special_chars = "-.+,[@_!#$%^&*()<>?/\|}{~:]"
     digits = "0123456789"
@@ -66,6 +77,9 @@ def remove_unimportant_words(s: str) -> str:
 
 
 def frequent_words(text_batch: List[str], threshold: int) -> nltk.FreqDist:
+    """
+    Gets the @threshold most common words that occurs on @text_batch.
+    """
     joined_descritions = " ".join(
         remove_unimportant_words(text) for text in text_batch)
     tokens = word_tokenize(joined_descritions)
