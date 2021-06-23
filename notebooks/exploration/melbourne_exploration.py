@@ -10,6 +10,7 @@
 # servidor de la Universidad Nacional de Córdoba para facilitar su acceso
 # remoto.
 # %%
+from typing import Tuple
 import pandas as pd
 import numpy as np
 import seaborn
@@ -18,7 +19,10 @@ import geopandas as gpd
 import requests
 import missingno as msno
 
-def clean_outliers(df, column_name):
+
+def clean_outliers(df: pd.DataFrame,
+                   column_name: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
+
     col = df[column_name]
     mask_outlier = np.abs(col - col.mean()) <= (2.5 * col.std())
     return df[mask_outlier], df[~mask_outlier]
@@ -26,9 +30,7 @@ def clean_outliers(df, column_name):
 URL_MELB_HOUSING_DATA = "https://www.famaf.unc.edu.ar/~nocampo043/melb_housing_df.csv"
 URL_MELB_SUBURB_DATA = "https://www.famaf.unc.edu.ar/~nocampo043/melb_suburb_df.csv"
 
-melb_housing_df = pd.read_csv(
-    URL_MELB_HOUSING_DATA
-)
+melb_housing_df = pd.read_csv(URL_MELB_HOUSING_DATA)
 melb_suburb_df = pd.read_csv(
     URL_MELB_SUBURB_DATA
 )
@@ -53,9 +55,7 @@ plt.ticklabel_format(style="plain", axis="x")
 # TODO: Explicar cual es la razón de que se descarten estos valores.
 # %%
 melb_housing_df, melb_housing_outliers_df = clean_outliers(
-    melb_housing_df,
-    "housing_price"
-)
+    melb_housing_df, "housing_price")
 # %%
 melb_housing_df
 # %%
@@ -110,11 +110,9 @@ gt5_df = melb_housing_df["housing_room_count"].replace({
 melb_housing_df.loc[:, "housing_room_categ"] = gt5_df
 # %%
 plt.figure(figsize=(16, 8))
-seaborn.boxplot(
-    x="housing_room_categ",
-    y="housing_price",
-    data=melb_housing_df.sort_values(by="housing_room_categ")
-)
+seaborn.boxplot(x="housing_room_categ",
+                y="housing_price",
+                data=melb_housing_df.sort_values(by="housing_room_categ"))
 plt.xticks(rotation=40)
 plt.ylabel("Precio de la vivienda")
 plt.xlabel("Cantidad de ambientes")
@@ -138,10 +136,7 @@ melb_housing_df[["housing_bathroom_count"]].value_counts()
 # %%
 min_bathroom_count = 1
 lt_one_bathroom = melb_housing_df["housing_bathroom_count"] < min_bathroom_count
-melb_housing_df.loc[
-    lt_one_bathroom,
-    "housing_bathroom_count"
-] = 1
+melb_housing_df.loc[lt_one_bathroom, "housing_bathroom_count"] = 1
 # %% [markdown]
 # Ahora bien, para aquellas viviendas que presenten entre 3 a más baños se
 # agruparán en una sola categoría con el fin de asegurar que los grupos 1, 2,
@@ -159,12 +154,11 @@ gt_two_df = melb_housing_df["housing_bathroom_count"].replace({
 })
 melb_housing_df.loc[:, "housing_bathroom_categ"] = gt_two_df
 # %%
-seaborn.catplot(
-    data=melb_housing_df,
-    y="housing_price",
-    x="housing_bathroom_categ",
-    height=4, aspect=2
-)
+seaborn.catplot(data=melb_housing_df,
+                y="housing_price",
+                x="housing_bathroom_categ",
+                height=4,
+                aspect=2)
 # %% [markdown]
 # Se puede observar una disminución en el rango de precios medida que aumenta la
 # cantidad de baños. Si bien el precio máximo es similar, el mínimo aumenta para
@@ -190,11 +184,9 @@ gt_four_df = melb_housing_df["housing_garage_count"].replace({
 melb_housing_df.loc[:, "housing_garage_categ"] = gt_four_df
 # %%
 plt.figure(figsize=(16, 8))
-seaborn.boxplot(
-    x="housing_garage_categ",
-    y="housing_price",
-    data=melb_housing_df.sort_values(by="housing_garage_categ")
-)
+seaborn.boxplot(x="housing_garage_categ",
+                y="housing_price",
+                data=melb_housing_df.sort_values(by="housing_garage_categ"))
 plt.xticks(rotation=40)
 plt.ylabel("Precio de la vivienda")
 plt.xlabel("Cantidad de garages")
@@ -206,13 +198,12 @@ plt.ticklabel_format(style='plain', axis='y')
 # TODO: Verlo con Aldana. ¿Decidir sacarla? ¿Como tomar la decisión de descartarlo?
 # %% [markdown]
 # ### Tamaño de terreno (`housing_land_size`)
-# %% 
-seaborn.pairplot(
-    data=melb_housing_df.sample(2500),
-    y_vars="housing_price",
-    x_vars="housing_land_size",
-    aspect=2, height=4
-)
+# %%
+seaborn.pairplot(data=melb_housing_df.sample(2500),
+                 y_vars="housing_price",
+                 x_vars="housing_land_size",
+                 aspect=2,
+                 height=4)
 # %% [markdown]
 # TODO: Verlo con Aldana. ¿Decidir sacarla? ¿Como tomar la decisión de descartarlo?
 # %% [markdown]
@@ -220,19 +211,17 @@ seaborn.pairplot(
 # Se considera que esta variable es importante para predecir el precio, por ende
 # se procedió a imputar sus valores faltantes en una sección posterior.
 # %%
-msno.bar(
-    melb_housing_df[["housing_price", "housing_building_area"]],
-    figsize=(12, 6),
-    fontsize=12,
-)
+msno.bar(melb_housing_df[["housing_price", "housing_building_area"]],
+         figsize=(12, 6),
+         fontsize=12)
 # %% [markdown]
 # ### Tipo de vivienda (`housing_type`)
 # Significado de cada categoría:
-# 
+#
 # - `h`: Casa.
-# 
+#
 # - `u`: Unidad, dúplex.
-# 
+#
 # - `t`: Casa adosada.
 # %%
 (
@@ -243,11 +232,7 @@ msno.bar(
 )
 # %%
 plt.figure(figsize=(8,8))
-seaborn.boxenplot(
-    data=melb_housing_df,
-    x="housing_price",
-    y="housing_type"
-)
+seaborn.boxenplot(data=melb_housing_df, x="housing_price", y="housing_type")
 plt.ticklabel_format(style="plain", axis="x")
 # %% [markdown]
 # Se observa que la variable tipo de vivienda, tiene influencia en el precio de la
@@ -280,11 +265,9 @@ plt.ticklabel_format(style="plain", axis="x")
 )
 # %%
 plt.figure(figsize=(8,8))
-seaborn.boxenplot(
-    data=melb_housing_outliers_df,
-    x="housing_price",
-    y="housing_type"
-)
+seaborn.boxenplot(data=melb_housing_outliers_df,
+                  x="housing_price",
+                  y="housing_type")
 plt.ticklabel_format(style="plain", axis="x")
 # %% [markdown]
 # Se observa que dentro de los outliers se están eliminando en mayor cantidad
@@ -304,11 +287,9 @@ plt.ticklabel_format(style="plain", axis="x")
 )
 # %%
 plt.figure(figsize=(8,8))
-seaborn.boxenplot(
-    data=melb_housing_df,
-    x="housing_price",
-    y="housing_selling_method"
-)
+seaborn.boxenplot(data=melb_housing_df,
+                  x="housing_price",
+                  y="housing_selling_method")
 plt.ticklabel_format(style="plain", axis="x")
 # %%
 types = melb_housing_df["housing_type"].unique()
@@ -318,12 +299,10 @@ for ax, type in zip(axes, types):
     houses_by_type_df = melb_housing_df[
         melb_housing_df["housing_type"] == type
     ]
-    seaborn.boxenplot(
-        ax=ax,
-        data=houses_by_type_df,
-        x="housing_price",
-        y="housing_selling_method"
-    )
+    seaborn.boxenplot(ax=ax,
+                      data=houses_by_type_df,
+                      x="housing_price",
+                      y="housing_selling_method")
     ax.ticklabel_format(style="plain", axis="x")
 # %% [markdown]
 # Se observa que la distribución de la variable `housing_price` es similar en
@@ -342,17 +321,14 @@ melb_housing_df["housing_seller_agency"].value_counts()
 # %% [markdown]
 # Existen 266 vendedores que efectúan las transacciones de las viviendas. A
 # continuación, se calcula si existe concentración de movimientos en algúno de
-# ellos. 
+# ellos.
 # %%
 best_sellers_df = (
     melb_housing_df[["housing_seller_agency", "housing_price"]]
         .groupby("housing_seller_agency")
-        .agg(
-            sales_count=("housing_seller_agency", "count"),
-            sales_percentage=("housing_seller_agency", 
-                lambda sales: 100 * len(sales) / len(melb_housing_df)
-            )
-        )
+        .agg(sales_count=("housing_seller_agency", "count"),
+             sales_percentage=("housing_seller_agency",
+                                lambda sales: 100 * len(sales) / len(melb_housing_df)))
         .sort_values(by="sales_count", ascending=False)
         .head(20)
 )
@@ -361,17 +337,13 @@ best_sellers_df.sum()
 # %%
 best_sellers_df.index
 # %%
-fig = plt.figure(figsize=(12,12))
+fig = plt.figure(figsize=(12, 12))
 seaborn.barplot(
-    data=melb_housing_df[
-        melb_housing_df["housing_seller_agency"].isin(
-            best_sellers_df.index
-        )
-    ],
+    data=melb_housing_df[melb_housing_df["housing_seller_agency"].isin(
+        best_sellers_df.index)],
     x="housing_seller_agency",
     y="housing_price",
-    estimator=np.mean
-)
+    estimator=np.mean)
 plt.xlabel("Agencia de ventas")
 plt.ylabel("Precio promedio de ventas")
 plt.xticks(rotation=90)
@@ -390,12 +362,10 @@ plt.ticklabel_format(style="plain", axis="y")
 # región se realizó un boxplot como se muestra a continuación.
 # %%
 plt.figure(figsize=(16, 8))
-seaborn.boxplot(
-    x="suburb_region_name",
-    y="housing_price",
-    palette="Set2",
-    data=melb_housing_df.join(melb_suburb_df, on="suburb_id")
-)
+seaborn.boxplot(x="suburb_region_name",
+                y="housing_price",
+                palette="Set2",
+                data=melb_housing_df.join(melb_suburb_df, on="suburb_id"))
 plt.xticks(rotation=40)
 plt.ylabel("Precio de venta")
 plt.xlabel("Región")
@@ -434,19 +404,14 @@ service = "wfs"
 
 wfsurl = f"{geoserver}/{route}/{service}"
 
-params = dict(
-    service="WFS",
-    version="2.0.0",
-    request="GetFeature",
-    typeName=(
-        route + ":ckan_a0d8838b_2423_4c8b_a7d9_b04eb240a2b1"
-    ),
-    outputFormat="json"
-)
+params = dict(service="WFS",
+              version="2.0.0",
+              request="GetFeature",
+              typeName=(route + ":ckan_a0d8838b_2423_4c8b_a7d9_b04eb240a2b1"),
+              outputFormat="json")
 
 region_location_df = gpd.GeoDataFrame.from_features(
-    requests.get(wfsurl, params=params).json()
-).set_crs("EPSG:3110")
+    requests.get(wfsurl, params=params).json()).set_crs("EPSG:3110")
 
 region_location_df.head()
 # %% [markdown]
@@ -460,9 +425,7 @@ region_location_df.head()
 # que correspondan a las que se tiene registro en el conjunto de datos inicial.
 # %%
 key_regions = [
-    region.upper()
-    for region in
-    melb_suburb_df["suburb_region_name"].unique()
+    region.upper() for region in melb_suburb_df["suburb_region_name"].unique()
 ]
 
 region_location_df = region_location_df[["vic_stat_2", "geometry"]]
@@ -481,27 +444,19 @@ region_location_df
 # objeto `POINT`. El *dataframe* subyacente es el siguiente:
 # %%
 house_location_cols = [
-    "housing_cbd_distance",
-    "housing_lattitude",
-    "housing_longitude"
+    "housing_cbd_distance", "housing_lattitude", "housing_longitude"
 ]
-suburb_location_cols = [
-    "suburb_region_name",
-    "suburb_property_count"
-]
+suburb_location_cols = ["suburb_region_name", "suburb_property_count"]
 
 house_location_df = (
     melb_housing_df[house_location_cols + ["housing_price", "suburb_id"]]
-        .join(melb_suburb_df[suburb_location_cols], on="suburb_id")
-)
+        .join(melb_suburb_df[suburb_location_cols], on="suburb_id"))
 
 house_location_df = gpd.GeoDataFrame(
     house_location_df,
     geometry=gpd.points_from_xy(
         house_location_df["housing_longitude"],
-        house_location_df["housing_lattitude"]
-    )
-).set_crs("EPSG:3110")
+        house_location_df["housing_lattitude"])).set_crs("EPSG:3110")
 
 house_location_df.head()
 # %% [markdown]
@@ -511,18 +466,12 @@ house_location_df.head()
 # (`South-Eastern Metropolitan`, `Southern Metropolitan`, `Western Metropolitan`
 # y `Northern Metropolitan`).
 # %%
-background = region_location_df.plot(
-    column="vic_stat_2",
-    edgecolor="black",
-    figsize=(15, 15),
-    legend=True
-)
+background = region_location_df.plot(column="vic_stat_2",
+                                     edgecolor="black",
+                                     figsize=(15, 15),
+                                     legend=True)
 
-properties = house_location_df.plot(
-    ax=background,
-    marker="o",
-    color="red"
-)
+properties = house_location_df.plot(ax=background, marker="o", color="red")
 background.set(title="Regiones del Territorio de Victoria, Australia")
 plt.ylabel("Latitude")
 plt.xlabel("Longitude")
@@ -535,32 +484,25 @@ plt.xlabel("Longitude")
 # en `Southern Metropolitan` donde también se encuentra la ciudad de Melbourne.
 # %%
 metropolitan_regions = [
-    region_name
-    for region_name in key_regions
+    region_name for region_name in key_regions
     if region_name.endswith("METROPOLITAN")
 ]
 
 only_metropolitan = (
-    region_location_df["vic_stat_2"]
-        .isin(metropolitan_regions)
-)
+    region_location_df["vic_stat_2"].isin(metropolitan_regions))
 region_location_df = region_location_df[only_metropolitan]
 # %%
-cmap= seaborn.color_palette("flare", as_cmap=True)
+cmap = seaborn.color_palette("flare", as_cmap=True)
 
-background = region_location_df.plot(
-    column="vic_stat_2",
-    edgecolor="black",
-    figsize=(11, 11),
-    legend=True
-)
-properties = house_location_df.plot(
-    ax=background,
-    marker="o",
-    markersize=3,
-    column="housing_cbd_distance",
-    cmap=cmap
-)
+background = region_location_df.plot(column="vic_stat_2",
+                                     edgecolor="black",
+                                     figsize=(11, 11),
+                                     legend=True)
+properties = house_location_df.plot(ax=background,
+                                    marker="o",
+                                    markersize=3,
+                                    column="housing_cbd_distance",
+                                    cmap=cmap)
 
 background.set(title="Área Metropolitana- Victoria, Australia")
 
@@ -569,16 +511,13 @@ plt.xlabel("Longitude")
 
 fig = properties.get_figure()
 
-cbax = fig.add_axes([0.95, 0.2, 0.04, 0.60])   
+cbax = fig.add_axes([0.95, 0.2, 0.04, 0.60])
 cbax.set_title("Distancia al centro")
 
 sm = plt.cm.ScalarMappable(
     cmap=cmap,
-    norm=plt.Normalize(
-        vmin=min(house_location_df["housing_cbd_distance"]),
-        vmax=max(house_location_df["housing_cbd_distance"])
-    )
-)
+    norm=plt.Normalize(vmin=min(house_location_df["housing_cbd_distance"]),
+                       vmax=max(house_location_df["housing_cbd_distance"])))
 fig.colorbar(sm, cax=cbax, format="%d")
 # %% [markdown]
 # También, se realizó otro mapa incluyendo a la variable `housing_price`, el
@@ -586,21 +525,17 @@ fig.colorbar(sm, cax=cbax, format="%d")
 # regiones de `Southern Metropolitan` y `Estearn Metropolitan`.
 # TODO: Se repite el código del gráfico. Capaz se podría hacer una función.
 # %%
-cmap= seaborn.color_palette("flare", as_cmap=True)
+cmap = seaborn.color_palette("flare", as_cmap=True)
 
-background = region_location_df.plot(
-    column="vic_stat_2",
-    edgecolor="black",
-    figsize=(11, 11),
-    legend=True
-)
-properties = house_location_df.plot(
-    ax=background,
-    marker="o",
-    markersize=3,
-    column="housing_price",
-    cmap=cmap
-)
+background = region_location_df.plot(column="vic_stat_2",
+                                     edgecolor="black",
+                                     figsize=(11, 11),
+                                     legend=True)
+properties = house_location_df.plot(ax=background,
+                                    marker="o",
+                                    markersize=3,
+                                    column="housing_price",
+                                    cmap=cmap)
 
 background.set(title="Área Metropolitana- Victoria, Australia")
 
@@ -609,16 +544,13 @@ plt.xlabel("Longitude")
 
 fig = properties.get_figure()
 
-cbax = fig.add_axes([0.95, 0.2, 0.04, 0.60])   
+cbax = fig.add_axes([0.95, 0.2, 0.04, 0.60])
 cbax.set_title("Precio de venta")
 
-sm = plt.cm.ScalarMappable(
-    cmap=cmap,
-    norm=plt.Normalize(
-        vmin=min(house_location_df["housing_price"]),
-        vmax=max(house_location_df["housing_price"])
-    )
-)
+sm = plt.cm.ScalarMappable(cmap=cmap,
+                           norm=plt.Normalize(
+                               vmin=min(house_location_df["housing_price"]),
+                               vmax=max(house_location_df["housing_price"])))
 fig.colorbar(sm, cax=cbax, format="%d")
 # %% [markdown]
 # Estas observarciones dejan en evidencia que la localización de las viviendas
@@ -643,9 +575,9 @@ fig.colorbar(sm, cax=cbax, format="%d")
 )
 # %%
 victorian_region_df = melb_suburb_df["suburb_region_name"].replace({
-    "Western Victoria":"Victoria",
-    "Eastern Victoria":"Victoria",
-    "Northern Victoria":"Victoria"
+    "Western Victoria": "Victoria",
+    "Eastern Victoria": "Victoria",
+    "Northern Victoria": "Victoria"
 })
 melb_suburb_df.loc[:, "suburb_region_categ"] = victorian_region_df
 # %%
@@ -656,15 +588,11 @@ melb_suburb_df.loc[:, "suburb_region_categ"] = victorian_region_df
         .size()
 )
 # %%
-plt.figure(figsize=(8,8))
-seaborn.boxenplot(
-    data=melb_housing_df.join(
-        melb_suburb_df["suburb_region_categ"],
-        on="suburb_id"
-    ),
-    x="suburb_region_categ",
-    y="housing_price"
-)
+plt.figure(figsize=(8, 8))
+seaborn.boxenplot(data=melb_housing_df.join(
+    melb_suburb_df["suburb_region_categ"], on="suburb_id"),
+                  x="suburb_region_categ",
+                  y="housing_price")
 plt.ticklabel_format(style="plain", axis="y")
 plt.xticks(rotation=40)
 # %% [markdown]
