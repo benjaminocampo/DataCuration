@@ -34,10 +34,12 @@ import missingno as msno
 import numpy as np
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
+
 nltk.download("stopwords")
 nltk.download('punkt')
 
 stopwords = set(nltk.corpus.stopwords.words("english"))
+
 
 def replace_columns(df: pd.DataFrame, new_columns: Dict[str, str]) -> pd.DataFrame:
     new_col_names = {
@@ -46,6 +48,7 @@ def replace_columns(df: pd.DataFrame, new_columns: Dict[str, str]) -> pd.DataFra
         for original_name, new_name in cols.items()
     }
     return df.rename(columns=new_col_names)
+
 
 def remove_unimportant_words(s: str) -> str:
     """
@@ -57,16 +60,14 @@ def remove_unimportant_words(s: str) -> str:
 
     reduced_text = "".join(c for c in s if not c in invalid_chars)
 
-    reduced_text = " ".join(
-        w.lower() for w in word_tokenize(reduced_text)
-        if not w.lower() in stopwords
-    )
+    reduced_text = " ".join(w.lower() for w in word_tokenize(reduced_text)
+                            if not w.lower() in stopwords)
     return reduced_text
+
 
 def frequent_words(text_batch: List[str], threshold: int) -> nltk.FreqDist:
     joined_descritions = " ".join(
-        remove_unimportant_words(text) for text in text_batch
-    )
+        remove_unimportant_words(text) for text in text_batch)
     tokens = word_tokenize(joined_descritions)
     return nltk.FreqDist(tokens).most_common(threshold)
 
@@ -171,10 +172,9 @@ councils_df = (
     melb_suburb_df[["suburb_name", "suburb_council_area"]]
         .groupby("suburb_name")
         .agg(lambda councils:
-            np.nan 
-            if councils.count() == 0
-            else list(councils.dropna())
-        )
+             np.nan
+             if councils.count() == 0
+             else list(councils.dropna()))
 )
 # %%
 councils_df
@@ -198,11 +198,9 @@ melb_suburb_df
 # %%
 melb_housing_df = (
     melb_df[housing_cols + ["suburb_name"]]
-        .replace({
-            suburb_name: suburb_id
-            for suburb_name, suburb_id
-            in zip(melb_suburb_df["suburb_name"], melb_suburb_df.index)
-        })
+        .replace({suburb_name: suburb_id
+                 for suburb_name, suburb_id
+                 in zip(melb_suburb_df["suburb_name"], melb_suburb_df.index)})
         .rename(columns={"suburb_name": "suburb_id"})
 )
 # %%
@@ -235,7 +233,7 @@ melb_suburb_df
 #
 # Por ende, de las distintas columnas que se encuentran en el conjunto de datos
 # de AirBnB se utilizaron las siguientes:
-# 
+#
 # - `zipcode`: El código postal es un buen descriptor que involucra un conjunto
 #   de suburbios que se encuentran cerca.
 #
@@ -269,11 +267,8 @@ airbnb_df
 zipcode_count_df = airbnb_df["zipcode"].value_counts()
 zipcode_count_df
 # %%
-airbnb_df = airbnb_df[
-    airbnb_df["zipcode"].isin(
-        zipcode_count_df.index[zipcode_count_df > zipcode_count_df.median()]
-    )
-]
+airbnb_df = airbnb_df[airbnb_df["zipcode"].isin(
+    zipcode_count_df.index[zipcode_count_df > zipcode_count_df.median()])]
 airbnb_df
 # %% [markdown]
 # Ahora bien, la cantidad de datos faltantes en las variables `weekly_price` y
@@ -311,19 +306,17 @@ msno.bar(airbnb_df,figsize=(12, 6), fontsize=12, color='steelblue')
 # %%
 ten_most_freq_words = lambda text_batch: frequent_words(text_batch, 10)
 
-airbnb_df = airbnb_df.groupby("zipcode") \
-    .agg(
-        suburb_description_wordcount=(
-            "description", ten_most_freq_words
-        ),
-        suburb_neighborhoods_overview_wordcount=(
-            "neighborhood_overview", ten_most_freq_words
-        ),
-        suburb_transit_wordcount=("transit", ten_most_freq_words),
-        suburb_rental_dailyprice=("price", "mean")
-    ) \
-    .reset_index() \
+airbnb_df = (
+    airbnb_df.groupby("zipcode")
+    .agg(suburb_description_wordcount=(
+             "description", ten_most_freq_words),
+         suburb_neighborhoods_overview_wordcount=(
+             "neighborhood_overview", ten_most_freq_words),
+         suburb_transit_wordcount=("transit", ten_most_freq_words),
+         suburb_rental_dailyprice=("price", "mean"))
+    .reset_index()
     .rename(columns={"zipcode": "suburb_postcode"})
+)
 # %%
 airbnb_df
 # %% [markdown]
@@ -334,9 +327,9 @@ airbnb_df
 # combinaron los *dataframes* `melb_suburb_df` y `airbnb_df` renombrando la
 # columna `zipcode` de este último.
 # %%
-melb_suburb_df = melb_suburb_df.merge(
-    airbnb_df, how='left', on="suburb_postcode"
-)
+melb_suburb_df = melb_suburb_df.merge(airbnb_df,
+                                      how='left',
+                                      on="suburb_postcode")
 # %%
 melb_suburb_df
 # %%
