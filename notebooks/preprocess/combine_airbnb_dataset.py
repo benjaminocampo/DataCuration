@@ -1,11 +1,11 @@
 # %% [markdown]
-# # Diplomatura en Ciencas de Datos, Aprendizaje Automático y sus Aplicaciones
+# # Diplomatura en Ciencias de Datos, Aprendizaje Automático y sus Aplicaciones
 #
-# Autores: Matias Oria, Antonela Sambuceti, Pamela Pairo, Benjamín Ocampo
+# Autores: Matías Oria, Antonela Sambuceti, Pamela Pairo, Benjamín Ocampo
 # %% [markdown]
 # ## Introducción
 #
-# Se trabajó sobre el conjunto de datos de [la compentencia
+# Se trabajó sobre el conjunto de datos de [la competencia
 # Kaggle](https://www.kaggle.com/dansbecker/melbourne-housing-snapshot) para la
 # estimación de precios de ventas de propiedades en Melbourne, Australia.
 #
@@ -134,7 +134,7 @@ melb_df
 # `join` y obtener el *dataframe* original.
 #
 # Para separar `melb_df` como se mencionó anteriormente, se obtienen las
-# columnas de ambas categorias por medio de sus prefijos `housing` y `suburb` y
+# columnas de ambas categorías por medio de sus prefijos `housing` y `suburb` y
 # se filtran para obtener dos *dataframes* distintos. Posteriormente, se
 # remueven los duplicados de la tabla asociada a los suburbios.
 # %%
@@ -162,7 +162,7 @@ melb_suburb_df[melb_suburb_df["suburb_name"] == "Alphington"]
 )
 # %% [markdown]
 # Ahora bien, las entradas distintas no se puede considerar que son
-# inconsistentes ya que hay suburbios en Melbourne que dependen de dos
+# inconsistentes, ya que hay suburbios en Melbourne que dependen de dos
 # departamentos gubernamentales como es el caso de `Alphington`. Por ende, se
 # agruparán en listas todos los departamentos a los cuales un suburbio
 # pertenece. Si todas las entradas de un suburbio presentan valores nulos, será
@@ -208,7 +208,7 @@ melb_housing_df
 # %%
 melb_suburb_df
 # %% [markdown]
-# Con esto se pueden analizar caracteristicas de los suburbios sin considerar
+# Con esto se pueden analizar características de los suburbios sin considerar
 # las viviendas. Es decir, la información contenida en las columnas
 # `suburb_council_area`, `suburb_property_count`, `suburb_region_name`,
 # `suburb_postcode` permite caracterizar mejor cada suburbio.
@@ -229,7 +229,7 @@ melb_suburb_df
 # de calidad de dichas zonas, tales como la seguridad, concurrencia,
 # disponibilidad de actividades recreativas, entre otras. Por otro lado, conocer
 # cuál es el precio en el que se alquilan las viviendas de una zona por lo
-# general está relacionado a cierta garantía de algunos de esos factores.
+# general está relacionado con cierta garantía de algunos de esos factores.
 #
 # Por ende, de las distintas columnas que se encuentran en el conjunto de datos
 # de AirBnB se utilizaron las siguientes:
@@ -336,7 +336,7 @@ melb_suburb_df
 msno.bar(melb_suburb_df,figsize=(12, 6), fontsize=12, color='steelblue')
 # %% [markdown]
 # Notar ahora que los datos faltantes correspondientes luego de combinar los
-# datos son debido a aquellos código postales que no figuraban en el conjunto de
+# datos son debido a aquellos códigos postales que no figuraban en el conjunto de
 # datos de AirBnB.
 #
 # Para finalizar, `melb_suburb_df` y `melb_housing_df` fueron puestos a

@@ -1,7 +1,7 @@
 # %% [markdown]
-# # Diplomatura en Ciencas de Datos, Aprendizaje Automático y sus Aplicaciones
+# # Diplomatura en Ciencias de Datos, Aprendizaje Automático y sus Aplicaciones
 #
-# Autores: Matias Oria, Antonela Sambuceti, Pamela Pairo, Benjamín Ocampo
+# Autores: Matías Oria, Antonela Sambuceti, Pamela Pairo, Benjamín Ocampo
 # %% [markdown]
 # ## Definición de constantes, funciones *helper*, y lectura del conjunto de datos
 #
@@ -41,7 +41,7 @@ melb_housing_df
 # %% [markdown]
 # ## Elección de variables relevantes
 # Dado que el objetivo es predecir el precio de venta de viviendas en Melbourne
-# se procedió a analizar cuales son las variables que influyen.
+# se procedió a analizar cuáles son las variables que influyen.
 # %% [markdown]
 # ### Precio de venta (`housing_price`)
 # %%
@@ -51,8 +51,8 @@ plt.ticklabel_format(style="plain", axis="x")
 # %% [markdown]
 # Se observa la presencia de outliers en la variable `housing_price`, por encima
 # de los 6 millones. Se decidió eliminar aquellos valores atípicos que se
-# encuentran alejados de la media, mas allá de 2.5 veces su desviación estandar.
-# TODO: Explicar cual es la razón de que se descarten estos valores.
+# encuentran alejados de la media, más allá de 2.5 veces su desviación estandar.
+# TODO: Explicar cuál es la razón de que se descarten estos valores.
 # %%
 melb_housing_df, melb_housing_outliers_df = clean_outliers(
     melb_housing_df, "housing_price")
@@ -61,7 +61,7 @@ melb_housing_df
 # %%
 melb_housing_outliers_df
 # %% [markdown]
-# A continuación se analizaron las demás variables sin los *outliers* del precio
+# A continuación, se analizaron las demás variables sin los *outliers* del precio
 # de venta.
 # %%
 plt.figure(figsize=(8,8))
@@ -80,7 +80,7 @@ melb_housing_df["housing_address"].value_counts()
 # %% [markdown]
 # ### Cantidad habitaciones (`housing_bedroom_count`)
 # Dado que las variables `housing_bedroom_count`, `housing_room_count` están
-# fuertemente correlacionadas se optó por conservar la ultima de estas porque
+# fuertemente correlacionadas se optó por conservar la última de estas porque
 # `housing_bedroom_count` proveniene de otro *dataset*.
 # %%
 melb_housing_df[
@@ -118,7 +118,7 @@ plt.ylabel("Precio de la vivienda")
 plt.xlabel("Cantidad de ambientes")
 plt.ticklabel_format(style='plain', axis='y')
 # %% [markdown]
-# Luego del analisis individual de la cantidad de ambientes, se puede observar
+# Luego del análisis individual de la cantidad de ambientes, se puede observar
 # que existe un aumento de la mediana del precio de venta y su variabilidad.
 # %% [markdown]
 # ### Cantidad de baños (`housing_bathroom`)
@@ -126,7 +126,7 @@ plt.ticklabel_format(style='plain', axis='y')
 # La cantidad de baños de las viviendas vendidas se encuentran en su mayoría
 # entre 1 y 3 siendo valores más atípicos las que superan este rango. Por otro
 # lado, se encuentran propiedades con una cantidad de 0 baños lo cual resulta
-# peculiar recordando que los tipos de hogares en venta son casas, duplex, y
+# peculiar recordando que los tipos de hogares en venta son casas, dúplex, y
 # casas adosadas.
 # %%
 melb_housing_df[["housing_bathroom_count"]].value_counts()
@@ -192,7 +192,7 @@ plt.ylabel("Precio de la vivienda")
 plt.xlabel("Cantidad de garages")
 plt.ticklabel_format(style='plain', axis='y')
 # %% [markdown]
-# A excepción de las viviendas con un garage, el resto de categorias pareciera
+# A excepción de las viviendas con un garage, el resto de categorías pareciera
 # que se comportan de manera similar ante la variable precio, por lo tanto se
 # decidió no seleccionar `housing_garage_count`.
 # TODO: Verlo con Aldana. ¿Decidir sacarla? ¿Como tomar la decisión de descartarlo?
@@ -207,7 +207,7 @@ seaborn.pairplot(data=melb_housing_df.sample(2500),
 # %% [markdown]
 # TODO: Verlo con Aldana. ¿Decidir sacarla? ¿Como tomar la decisión de descartarlo?
 # %% [markdown]
-# ## Area de construcción (`housing_building_area`)
+# ## Área de construcción (`housing_building_area`)
 # Se considera que esta variable es importante para predecir el precio, por ende
 # se procedió a imputar sus valores faltantes en una sección posterior.
 # %%
@@ -307,10 +307,10 @@ for ax, type in zip(axes, types):
 # %% [markdown]
 # Se observa que la distribución de la variable `housing_price` es similar en
 # cada método de venta. Los valores medios están cercanos al millón
-# extendiendose hasta valores máximos cercanos a los 2,5 millones. El método de
-# venta `SA`, correspondiente a "vendido después de la subasta", parece ser el
+# extendiéndose hasta valores máximos cercanos a los 2,5 millones. El método de
+# venta `SA`, correspondiente a “vendido después de la subasta”, parece ser el
 # más diferente. No obstante, se observa que son pocos los casos comprendidos en
-# esta categoria (menos de 100), por lo cual la baja frecuencia podría
+# esta categoría (menos de 100), por lo cual la baja frecuencia podría
 # justificar su disparidad con el resto.
 #
 # Consideramos no seleccionar el método venta para un siguiente análisis.
@@ -320,7 +320,7 @@ for ax, type in zip(axes, types):
 melb_housing_df["housing_seller_agency"].value_counts()
 # %% [markdown]
 # Existen 266 vendedores que efectúan las transacciones de las viviendas. A
-# continuación, se calcula si existe concentración de movimientos en algúno de
+# continuación, se calcula si existe concentración de movimientos en alguno de
 # ellos.
 # %%
 best_sellers_df = (
@@ -357,7 +357,7 @@ plt.ticklabel_format(style="plain", axis="y")
 # ubicación o bien su tamaño o composición. Por lo tanto tampoco se decidió
 # seleccionarla.
 # %% [markdown]
-# ### Región y distancia al ditrito central comercial (`housing_region_name`, y `housing_cbd_distance`)
+# ### Región y distancia al distrito central comercial (`housing_region_name`, y `housing_cbd_distance`)
 # Para analizar las medidas de tendencia central del precio de las viviendas por
 # región se realizó un boxplot como se muestra a continuación.
 # %%
@@ -371,7 +371,7 @@ plt.ylabel("Precio de venta")
 plt.xlabel("Región")
 plt.ticklabel_format(style="plain", axis="y")
 # %% [markdown]
-# `Southern Metropolitan` es la región con la media mas alta en el precio de
+# `Southern Metropolitan` es la región con la media más alta en el precio de
 # viviendas. `Northern Metropolitan`, `Western Motropolitan`, y `South-Eastern
 # Metropolitan` parecieran seguir un comportamiento similar. De la misma manera
 # ocurre con `Eastern Victoria`, `Northern Victoria`, y `Western Victoria`.
@@ -461,7 +461,7 @@ house_location_df = gpd.GeoDataFrame(
 house_location_df.head()
 # %% [markdown]
 # Finalmente, se procede a graficar las zonas limítrofes de Melbourne
-# superponiendo las ubicaciones de las viviendas. El mapa muestra que la mayoria
+# superponiendo las ubicaciones de las viviendas. El mapa muestra que la mayoría
 # de las ventas (en color rojo) se concentran en la región Metropolitana
 # (`South-Eastern Metropolitan`, `Southern Metropolitan`, `Western Metropolitan`
 # y `Northern Metropolitan`).
@@ -479,7 +479,7 @@ plt.xlabel("Longitude")
 # Para observar con mayor detalle la zona metropolitana, se filtran las entradas
 # de `region_location_df` y se incluye en el mapa la variable
 # `housing_cbd_distance` que indica la distancia que una propiedad tiene al
-# distrito central comercial. Se muestra que las viviendas mas cerca al centro
+# distrito central comercial. Se muestra que las viviendas más cerca al centro
 # (valores de distancia cercanos a cero de color naranja claro), se encuentran
 # en `Southern Metropolitan` donde también se encuentra la ciudad de Melbourne.
 # %%
@@ -521,7 +521,7 @@ sm = plt.cm.ScalarMappable(
 fig.colorbar(sm, cax=cbax, format="%d")
 # %% [markdown]
 # También, se realizó otro mapa incluyendo a la variable `housing_price`, el
-# cual muestra que los precios de vivienda mas altos se localizan en las
+# cual muestra que los precios de vivienda más altos se localizan en las
 # regiones de `Southern Metropolitan` y `Estearn Metropolitan`.
 # TODO: Se repite el código del gráfico. Capaz se podría hacer una función.
 # %%
@@ -553,7 +553,7 @@ sm = plt.cm.ScalarMappable(cmap=cmap,
                                vmax=max(house_location_df["housing_price"])))
 fig.colorbar(sm, cax=cbax, format="%d")
 # %% [markdown]
-# Estas observarciones dejan en evidencia que la localización de las viviendas
+# Estas observaciones dejan en evidencia que la localización de las viviendas
 # puede influir en el precio de las mismas. En este sentido, se decide incluir
 # la variable `suburb_region_name` en futuros análisis. Respecto a la variable
 # `housing_cbd_distance`, su mapa correspondiente muestra que los valores
@@ -599,12 +599,12 @@ plt.xticks(rotation=40)
 # ## Departamento gubernamental (`housing_council_area`)
 # Analizando las medidas de tendencia central para las variables
 # `suburb_council_area` y `housing_price` se observa que algunos suburbios
-# tienen una única vivienda con precio y otros como `Boroondara` tiene mas de
+# tienen una única vivienda con precio y otros como `Boroondara` tiene más de
 # 1000 viviendas. Esto muestra la disparidad en la cantidad de ventas
 # registradas en los diferentes suburbios.
 #
-# TODO: Es el suburbio o el departamento? Se muestra una tabla de medidas
-# descriptivas pero solo se habla del conteo, hace falta hacer describe?
+# TODO: Es el suburbio o el departamento? ¿Se muestra una tabla de medidas
+# descriptivas, pero solo se habla del conteo, hace falta hacer describe?
 # %%
 (
     melb_housing_df
