@@ -27,6 +27,7 @@
 # durante el preprocesamiento.
 # TODO: Agregar docstrings, y especificación de tipos.
 # %%
+from typing import Dict, List
 import pandas as pd
 import nltk
 import missingno as msno
@@ -38,7 +39,7 @@ nltk.download('punkt')
 
 stopwords = set(nltk.corpus.stopwords.words("english"))
 
-def replace_columns(df, new_columns):
+def replace_columns(df: pd.DataFrame, new_columns: Dict[str, str]) -> pd.DataFrame:
     new_col_names = {
         original_name: category + '_' + new_name
         for category, cols in new_columns.items()
@@ -46,7 +47,7 @@ def replace_columns(df, new_columns):
     }
     return df.rename(columns=new_col_names)
 
-def remove_unimportant_words(s):
+def remove_unimportant_words(s: str) -> str:
     """
     Removes from the string @s all the stopwords, digits, and special chars
     """
@@ -62,7 +63,7 @@ def remove_unimportant_words(s):
     )
     return reduced_text
 
-def frequent_words(text_batch, threshold):
+def frequent_words(text_batch: List[str], threshold: int) -> nltk.FreqDist:
     joined_descritions = " ".join(
         remove_unimportant_words(text) for text in text_batch
     )
@@ -111,9 +112,10 @@ new_columns = {
     }
 }
 
-melb_df = pd \
-    .read_csv(URL_DOMAIN_DATA) \
+melb_df = (pd
+    .read_csv(URL_DOMAIN_DATA)
     .pipe(replace_columns, new_columns)
+)
 
 melb_df
 # %% [markdown]
@@ -194,13 +196,15 @@ melb_suburb_df
 # viviendas en aquellas posiciones donde se tenía un suburbio asociado siendo su
 # *foreign key*.
 # %%
-melb_housing_df = melb_df[housing_cols + ["suburb_name"]] \
-    .replace({
-        suburb_name: suburb_id
-        for suburb_name, suburb_id
-        in zip(melb_suburb_df["suburb_name"], melb_suburb_df.index)
-    }) \
-    .rename(columns={"suburb_name": "suburb_id"})
+melb_housing_df = (
+    melb_df[housing_cols + ["suburb_name"]]
+        .replace({
+            suburb_name: suburb_id
+            for suburb_name, suburb_id
+            in zip(melb_suburb_df["suburb_name"], melb_suburb_df.index)
+        })
+        .rename(columns={"suburb_name": "suburb_id"})
+)
 # %%
 melb_housing_df
 # %%
@@ -281,7 +285,7 @@ airbnb_df
 # las variables elegidas presentan una cantidad de muestras significativa y
 # replantear su selección.
 # %%
-msno.bar(airbnb_df,figsize=(12, 6), fontsize=12, color='steelblue')
+msno.bar(airbnb_df, figsize=(12, 6), fontsize=12, color='steelblue')
 # %% [markdown]
 # `weekly_price` y `monthly_price` presentan datos faltantes situados en la
 # categoría MNAR, es decir, a través de alguna perdida sistemática. Por lo
@@ -291,9 +295,11 @@ msno.bar(airbnb_df,figsize=(12, 6), fontsize=12, color='steelblue')
 # %%
 msno.matrix(airbnb_df,figsize=(12, 6), fontsize=12, color=[0,0,0.2])
 # %%
-airbnb_df = airbnb_df \
-    .drop(columns=["weekly_price", "monthly_price"]) \
-    .dropna()
+airbnb_df = (
+    airbnb_df
+        .drop(columns=["weekly_price", "monthly_price"])
+        .dropna()
+)
 
 airbnb_df
 # %%
