@@ -114,7 +114,7 @@ melb_housing_df[["housing_room_count"]].value_counts()
 # valores menos frecuentes aquellas que tienen 5 o más. Por ende, se decide
 # agrupar esta categoría.
 # %%
-# Explicitly create a copy after adding the column to avoid chaining indexes
+# Explicitly create a copy after adding the column to avoid chained indexes
 melb_housing_df = melb_housing_df.assign(housing_room_segment=to_categorical(
     melb_housing_df["housing_room_count"], bin_size=1, min_cut=None,
     max_cut=4))
@@ -153,7 +153,7 @@ melb_housing_df.loc[lt_one_bathroom, "housing_bathroom_count"] = 1
 # %%
 melb_housing_df = melb_housing_df.assign(
     housing_bathroom_segment=to_categorical(
-        melb_housing_df["housing_room_count"],
+        melb_housing_df["housing_bathroom_count"],
         bin_size=1,
         min_cut=None,
         max_cut=2))
@@ -168,7 +168,7 @@ seaborn.catplot(data=melb_housing_df,
 # cantidad de baños. Si bien el precio máximo es similar, el mínimo aumenta para
 # cada categoría.
 # %% [markdown]
-# ### Cantidad de garages (`housing_garages_count`)
+# ### Cantidad de garages (`housing_garage_count`)
 # %%
 melb_housing_df["housing_garage_count"].value_counts()
 # %%
@@ -182,7 +182,6 @@ plt.figure(figsize=(16, 8))
 seaborn.boxplot(x="housing_garage_segment",
                 y="housing_price",
                 data=melb_housing_df)
-plt.xticks(rotation=40)
 plt.ylabel("Precio de la vivienda")
 plt.xlabel("Cantidad de garages")
 plt.ticklabel_format(style='plain', axis='y')
