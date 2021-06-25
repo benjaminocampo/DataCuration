@@ -15,7 +15,6 @@
 #     language: python
 #     name: python3
 # ---
-
 # %% [markdown]
 """
 # Diplomatura en Ciencias de Datos, Aprendizaje Automático y sus Aplicaciones
@@ -27,9 +26,8 @@ Autores: Matías Oria, Antonela Sambuceti, Pamela Pairo, Benjamín Ocampo
 ## Definición de constantes, funciones *helper*, y lectura del conjunto de datos
 
 Se trabajó sobre los *dataframes* `melb_suburb_df` y `melb_housing_df` que
-fueron obtenidos en `normalize_melbourne_dataset.ipynb` alojados en un
-servidor de la Universidad Nacional de Córdoba para facilitar su acceso
-remoto.
+fueron obtenidos en `normalize_melbourne_dataset.ipynb` alojados en un servidor
+de la Universidad Nacional de Córdoba para facilitar su acceso remoto.
 """
 # %%
 from typing import Tuple
@@ -82,8 +80,8 @@ melb_housing_df
 # %% [markdown]
 """
 ## Elección de variables relevantes
-Dado que el objetivo es predecir el precio de venta de viviendas en Melbourne
-se procedió a analizar cuáles son las variables que influyen.
+Dado que el objetivo es predecir el precio de venta de viviendas en Melbourne se
+procedió a analizar cuáles son las variables que influyen.
 """
 # %% [markdown]
 """
@@ -119,12 +117,12 @@ plt.ticklabel_format(style="plain", axis="x")
 # %% [markdown]
 """
 ### Dirección de las viviendas (`housing_address`)
-Si bien `housing_address` permite conocer la ubicación exacta de una
-propiedad, no brinda información sobre aspectos de calidad que motiven la
-variación del precio de una vivienda en Melbourne. Es un dato único que
-primero debería ser agrupado en zonas para argumentar algún análisis.
-Agrupamiento que ya es brindado en el conjunto de datos por medio de otras
-variables como el nombre del suburbio, departamento, o el código postal.
+Si bien `housing_address` permite conocer la ubicación exacta de una propiedad,
+no brinda información sobre aspectos de calidad que motiven la variación del
+precio de una vivienda en Melbourne. Es un dato único que primero debería ser
+agrupado en zonas para argumentar algún análisis. Agrupamiento que ya es
+brindado en el conjunto de datos por medio de otras variables como el nombre del
+suburbio, departamento, o el código postal.
 """
 # %%
 melb_housing_df["housing_address"].value_counts()
@@ -166,25 +164,25 @@ plt.xlabel("Cantidad de ambientes")
 plt.ticklabel_format(style='plain', axis='y')
 # %% [markdown]
 """
-Luego del análisis individual de la cantidad de ambientes, se puede observar
-que existe un aumento de la mediana del precio de venta y su variabilidad.
+Luego del análisis individual de la cantidad de ambientes, se puede observar que
+existe un aumento de la mediana del precio de venta y su variabilidad.
 """
 # %% [markdown]
 """
 ### Cantidad de baños (`housing_bathroom`)
 
-La cantidad de baños de las viviendas vendidas se encuentran en su mayoría
-entre 1 y 3 siendo valores más atípicos las que superan este rango. Por otro
-lado, se encuentran propiedades con una cantidad de 0 baños lo cual resulta
-peculiar recordando que los tipos de hogares en venta son casas, dúplex, y
-casas adosadas.
+La cantidad de baños de las viviendas vendidas se encuentran en su mayoría entre
+1 y 3 siendo valores más atípicos las que superan este rango. Por otro lado, se
+encuentran propiedades con una cantidad de 0 baños lo cual resulta peculiar
+recordando que los tipos de hogares en venta son casas, dúplex, y casas
+adosadas.
 """
 # %%
 melb_housing_df[["housing_bathroom_count"]].value_counts()
 # %% [markdown]
 """
-A continuación, se procedió a reemplazar estos valores por el más frecuente
-dado que se considera que no puede haber una propiedad sin baño.
+A continuación, se procedió a reemplazar estos valores por el más frecuente dado
+que se considera que no puede haber una propiedad sin baño.
 """
 # %%
 min_bathroom_count = 1
@@ -193,8 +191,8 @@ melb_housing_df.loc[lt_one_bathroom, "housing_bathroom_count"] = 1
 # %% [markdown]
 """
 Ahora bien, para aquellas viviendas que presenten entre 3 a más baños se
-agruparán en una sola categoría con el fin de asegurar que los grupos 1, 2,
-y 3 o más baños, presenten una cantidad mínima de registros.
+agruparán en una sola categoría con el fin de asegurar que los grupos 1, 2, y 3
+o más baños, presenten una cantidad mínima de registros.
 """
 # %%
 melb_housing_df = melb_housing_df.assign(
@@ -237,10 +235,10 @@ plt.xlabel("Cantidad de garages")
 plt.ticklabel_format(style='plain', axis='y')
 # %% [markdown]
 """
-A excepción de las viviendas con un garage, el resto de categorías pareciera
-que se comportan de manera similar ante la variable precio, por lo tanto se
-decidió no seleccionar `housing_garage_count`.
-TODO: Verlo con Aldana. ¿Decidir sacarla? ¿Como tomar la decisión de descartarlo?
+A excepción de las viviendas con un garage, el resto de categorías pareciera que
+se comportan de manera similar ante la variable precio, por lo tanto se decidió
+no seleccionar `housing_garage_count`. TODO: Verlo con Aldana. ¿Decidir sacarla?
+¿Como tomar la decisión de descartarlo?
 """
 # %% [markdown]
 """
@@ -254,7 +252,8 @@ seaborn.pairplot(data=melb_housing_df.sample(2500),
                  height=4)
 # %% [markdown]
 """
-TODO: Verlo con Aldana. ¿Decidir sacarla? ¿Como tomar la decisión de descartarlo?
+TODO: Verlo con Aldana. ¿Decidir sacarla? ¿Como tomar la decisión de
+descartarlo?
 """
 # %% [markdown]
 """
@@ -300,8 +299,8 @@ propiedad.
 
 - Para el caso de `u`, es decir duplex, el precio medio se encuentra en valores
   cercanos a los 600 mil. Estando el rango intercuartil comprendido entre los
-  400 mil y 700 mil. Se observa que los valores máximos son superiores a los
-  2,5 millones.
+  400 mil y 700 mil. Se observa que los valores máximos son superiores a los 2,5
+  millones.
 
 - Para el caso de `t`, es decir casa adosada, el precio medio se encuentra en
   valores un poco superiores a los 900 mil. Estando el rango intercuartil
@@ -311,8 +310,7 @@ propiedad.
 # %% [markdown]
 """
 Visualizando los valores extremos del precio en función de esta variable se
-obtiene.
-TODO: Cuando eliminar outliers? que análisis se hacen para quitarlos?
+obtiene. TODO: Cuando eliminar outliers? que análisis se hacen para quitarlos?
 """
 # %%
 (
@@ -370,13 +368,13 @@ for ax, type in zip(axes, types):
     ax.ticklabel_format(style="plain", axis="x")
 # %% [markdown]
 """
-Se observa que la distribución de la variable `housing_price` es similar en
-cada método de venta. Los valores medios están cercanos al millón
-extendiéndose hasta valores máximos cercanos a los 2,5 millones. El método de
-venta `SA`, correspondiente a “vendido después de la subasta”, parece ser el
-más diferente. No obstante, se observa que son pocos los casos comprendidos en
-esta categoría (menos de 100), por lo cual la baja frecuencia podría
-justificar su disparidad con el resto.
+Se observa que la distribución de la variable `housing_price` es similar en cada
+método de venta. Los valores medios están cercanos al millón extendiéndose hasta
+valores máximos cercanos a los 2,5 millones. El método de venta `SA`,
+correspondiente a “vendido después de la subasta”, parece ser el más diferente.
+No obstante, se observa que son pocos los casos comprendidos en esta categoría
+(menos de 100), por lo cual la baja frecuencia podría justificar su disparidad
+con el resto.
 
 Consideramos no seleccionar el método venta para un siguiente análisis.
 """
@@ -418,13 +416,12 @@ plt.xticks(rotation=90)
 plt.ticklabel_format(style="plain", axis="y")
 # %% [markdown]
 """
-Se puede observar que algunos vendedores en promedio han vendido casas a
-precios más altos que otros, por ejemplo el vendedor `Marshall` sobresale por
-el resto con un precio medio de venta de 1,5 millones. Sin embargo, no se
-puede asegurar que el mayor precio de la venta sea por una mejor gestión del
-vendedor y no por otro tipo de variable, como ser el tipo de casa, la
-ubicación o bien su tamaño o composición. Por lo tanto tampoco se decidió
-seleccionarla.
+Se puede observar que algunos vendedores en promedio han vendido casas a precios
+más altos que otros, por ejemplo el vendedor `Marshall` sobresale por el resto
+con un precio medio de venta de 1,5 millones. Sin embargo, no se puede asegurar
+que el mayor precio de la venta sea por una mejor gestión del vendedor y no por
+otro tipo de variable, como ser el tipo de casa, la ubicación o bien su tamaño o
+composición. Por lo tanto tampoco se decidió seleccionarla.
 """
 # %% [markdown]
 """
@@ -453,7 +450,8 @@ ocurre con `Eastern Victoria`, `Northern Victoria`, y `Western Victoria`.
 """
 La siguiente tabla muestra que `Southern Metropolitan` es la región en donde se
 registró una mayor cantidad de ventas de viviendas (4377) a diferencia de
-`Eastern Victoria`, `Northern Victoria` y `Western Victoria` que muestran menos de
+`Eastern Victoria`, `Northern Victoria` y `Western Victoria` que muestran menos
+de
 100.
 """
 # %%
@@ -467,8 +465,8 @@ registró una mayor cantidad de ventas de viviendas (4377) a diferencia de
 """
 ## Geolocalización de propiedades por región
 El objetivo es ver la geolocalización de los datos en las diferentes regiones
-del Territorio de Victoria, Australia. A continuación, se muestra una
-imagen extraída de Wikipedia.
+del Territorio de Victoria, Australia. A continuación, se muestra una imagen
+extraída de Wikipedia.
 
 <img src="../graphs/melbourne_by_region.png" alt="melbourne by region">
 
@@ -495,13 +493,13 @@ region_location_df.head()
 # %% [markdown]
 """
 De este *dataframe* se obtiene información correspondiente a las divisiones
-gubernamentales de Melbourne. En particular, la columna `vic_stat_2` es
-aquella que contiene los nombres de regiones, y `geometry` su representación
-geométrica limítrofe. La proyección sobre las zonas de Melbourne es dada por
-el método `set_crs` que establece coordenadas arbitrarias del espacio en una
-ubicación particular del planeta. Sin embargo, hay varias zonas que se
-muestran en los alrededores de Melbourne, por ende, se filtran por aquellas
-que correspondan a las que se tiene registro en el conjunto de datos inicial.
+gubernamentales de Melbourne. En particular, la columna `vic_stat_2` es aquella
+que contiene los nombres de regiones, y `geometry` su representación geométrica
+limítrofe. La proyección sobre las zonas de Melbourne es dada por el método
+`set_crs` que establece coordenadas arbitrarias del espacio en una ubicación
+particular del planeta. Sin embargo, hay varias zonas que se muestran en los
+alrededores de Melbourne, por ende, se filtran por aquellas que correspondan a
+las que se tiene registro en el conjunto de datos inicial.
 """
 # %%
 key_regions = [
@@ -546,8 +544,8 @@ house_location_df.head()
 Finalmente, se procede a graficar las zonas limítrofes de Melbourne
 superponiendo las ubicaciones de las viviendas. El mapa muestra que la mayoría
 de las ventas (en color rojo) se concentran en la región Metropolitana
-(`South-Eastern Metropolitan`, `Southern Metropolitan`, `Western Metropolitan`
-y `Northern Metropolitan`).
+(`South-Eastern Metropolitan`, `Southern Metropolitan`, `Western Metropolitan` y
+`Northern Metropolitan`).
 """
 # %%
 background = region_location_df.plot(column="vic_stat_2",
@@ -565,8 +563,8 @@ Para observar con mayor detalle la zona metropolitana, se filtran las entradas
 de `region_location_df` y se incluye en el mapa la variable
 `housing_cbd_distance` que indica la distancia que una propiedad tiene al
 distrito central comercial. Se muestra que las viviendas más cerca al centro
-(valores de distancia cercanos a cero de color naranja claro), se encuentran
-en `Southern Metropolitan` donde también se encuentra la ciudad de Melbourne.
+(valores de distancia cercanos a cero de color naranja claro), se encuentran en
+`Southern Metropolitan` donde también se encuentra la ciudad de Melbourne.
 """
 # %%
 metropolitan_regions = [
@@ -607,10 +605,10 @@ sm = plt.cm.ScalarMappable(
 fig.colorbar(sm, cax=cbax, format="%d")
 # %% [markdown]
 """
-También, se realizó otro mapa incluyendo a la variable `housing_price`, el
-cual muestra que los precios de vivienda más altos se localizan en las
-regiones de `Southern Metropolitan` y `Estearn Metropolitan`.
-TODO: Se repite el código del gráfico. Capaz se podría hacer una función.
+También, se realizó otro mapa incluyendo a la variable `housing_price`, el cual
+muestra que los precios de vivienda más altos se localizan en las regiones de
+`Southern Metropolitan` y `Estearn Metropolitan`. TODO: Se repite el código del
+gráfico. Capaz se podría hacer una función.
 """
 # %%
 cmap = seaborn.color_palette("flare", as_cmap=True)
@@ -643,14 +641,14 @@ fig.colorbar(sm, cax=cbax, format="%d")
 # %% [markdown]
 """
 Estas observaciones dejan en evidencia que la localización de las viviendas
-puede influir en el precio de las mismas. En este sentido, se decide incluir
-la variable `suburb_region_name` en futuros análisis. Respecto a la variable
-`housing_cbd_distance`, su mapa correspondiente muestra que los valores
-cercanos al centro se ubican en la región `Southern Metropolitan` y aumenta a
-medida que se aleja del mismo y cambia de región. Por lo tanto, a partir de
-conocer la región en la que se ubica una vivienda se puede inferir su valor de
-distancia y por ende `housing_cbd_distance` ofrecería información redundante.
-Entonces se decidió no incluirla en futuros análisis.
+puede influir en el precio de las mismas. En este sentido, se decide incluir la
+variable `suburb_region_name` en futuros análisis. Respecto a la variable
+`housing_cbd_distance`, su mapa correspondiente muestra que los valores cercanos
+al centro se ubican en la región `Southern Metropolitan` y aumenta a medida que
+se aleja del mismo y cambia de región. Por lo tanto, a partir de conocer la
+región en la que se ubica una vivienda se puede inferir su valor de distancia y
+por ende `housing_cbd_distance` ofrecería información redundante. Entonces se
+decidió no incluirla en futuros análisis.
 """
 # %% [markdown]
 """
@@ -728,12 +726,12 @@ fig.colorbar(sm, cax=cbax, format="%d")
 ## Departamento gubernamental (`housing_council_area`)
 Analizando las medidas de tendencia central para las variables
 `suburb_council_area` y `housing_price` se observa que algunos departamentos
-tienen una única vivienda con precio y otros como `Boroondara` tiene más de
-1000 viviendas. Esto muestra la disparidad en la cantidad de ventas
-registradas en los diferentes departamentos. Dado que está variable brinda
-información similar a otras ya disponibles en el *dataset* no se la consideró
-relevante para estimar el precio, sin embargo, se la seleccionó para continuar
-con el resto de las consignas de el entregable.
+tienen una única vivienda con precio y otros como `Boroondara` tiene más de 1000
+viviendas. Esto muestra la disparidad en la cantidad de ventas registradas en
+los diferentes departamentos. Dado que está variable brinda información similar
+a otras ya disponibles en el *dataset* no se la consideró relevante para estimar
+el precio, sin embargo, se la seleccionó para continuar con el resto de las
+consignas de el entregable.
 """
 # %%
 (
@@ -745,11 +743,11 @@ con el resto de las consignas de el entregable.
 # %% [markdown]
 """
 ## Fecha de venta y año de construcción (`housing_date_sold` y `housing_year_built`)
-El tiempo en el que se vendió una propiedad puede ser relevante si se
-consideran inflación o cuestiones económicas durante el período de venta. Dado
-que el conjunto de datos corresponden a ventas de 2016 y 2017, es importante
-saber como fluctuó el precio durante este intervalo. Por ende, se trabajó
-sobre esta variable combirtiendo inicialmente los datos en objetos `datetime`.
+El tiempo en el que se vendió una propiedad puede ser relevante si se consideran
+inflación o cuestiones económicas durante el período de venta. Dado que el
+conjunto de datos corresponden a ventas de 2016 y 2017, es importante saber como
+fluctuó el precio durante este intervalo. Por ende, se trabajó sobre esta
+variable combirtiendo inicialmente los datos en objetos `datetime`.
 """
 # %%
 melb_housing_df = melb_housing_df.assign(
@@ -758,11 +756,11 @@ melb_housing_df = melb_housing_df.assign(
 # %% [markdown]
 """
 Observando la fecha y precio de venta no se encuentra una tendencia en algún
-periodo en particular. Las propiedades vendidas se encontraron entre los
-800000 a 120000 con una alta variabilidad que se obtiene probablemente a que
-se están considerando no solo los años y meses, sino también el día de venta,
-siendo quizás no tan relevante si se desea identificar un período donde se
-realizaron ventas de un alto valor.
+periodo en particular. Las propiedades vendidas se encontraron entre los 800000
+a 120000 con una alta variabilidad que se obtiene probablemente a que se están
+considerando no solo los años y meses, sino también el día de venta, siendo
+quizás no tan relevante si se desea identificar un período donde se realizaron
+ventas de un alto valor.
 """
 # %%
 seaborn.lineplot(data=melb_housing_df,
