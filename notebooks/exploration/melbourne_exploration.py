@@ -31,7 +31,7 @@ fueron obtenidos en `normalize_melbourne_dataset.ipynb` alojados en un servidor
 de la Universidad Nacional de Córdoba para facilitar su acceso remoto.
 """
 # %%
-from typing import Tuple
+from typing import Tuple, List, Optional
 import pandas as pd
 import numpy as np
 import seaborn
@@ -70,7 +70,17 @@ def to_categorical(column: pd.Series, bin_size: int, min_cut: int,
     return pd.cut(column, pd.IntervalIndex.from_tuples(intervals))
 
 
-def plot_melbourne_map(locations_df, key_regions, column_name_colorbar=None):
+def plot_melbourne_map(locations_df: gpd.GeoDataFrame,
+                       key_regions: List[str],
+                       column_name_colorbar: Optional[str] = None) -> None:
+    """
+    Plots a map of the surroundings of Melbourne, displaying the regions given by
+    @key_regions. @location_df needs to be a geodataframe that contains the
+    latitude and longitude as pandas points, so they can be superimposed on the
+    background map. If @column_name_colorbar is provided, it needs to be the
+    name of a column of @locations_df. Then, it colors the points and adds a
+    colorbar indicating the magnitude of the values contained in that column.
+    """
     geoserver = "https://data.gov.au/geoserver"
     route = "vic-state-electoral-boundaries-psma-administrative-boundaries"
     service = "wfs"
