@@ -108,3 +108,6 @@ ENV/
 
 # csv files
 *.csv
+
+# tutorials
+guides/
