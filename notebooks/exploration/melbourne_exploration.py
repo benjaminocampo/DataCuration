@@ -15,6 +15,7 @@
 #     language: python
 #     name: python3
 # ---
+
 # %% [markdown]
 """
 # Diplomatura en Ciencias de Datos, Aprendizaje Automático y sus Aplicaciones
@@ -67,6 +68,59 @@ def to_categorical(column: pd.Series, bin_size: int, min_cut: int,
     if max_cut != value_max:
         intervals.append((max_cut, value_max))
     return pd.cut(column, pd.IntervalIndex.from_tuples(intervals))
+
+
+def plot_melbourne_map(locations_df, key_regions, column_name_colorbar=None):
+    geoserver = "https://data.gov.au/geoserver"
+    route = "vic-state-electoral-boundaries-psma-administrative-boundaries"
+    service = "wfs"
+    projection = "EPSG:3110"
+    wfsurl = f"{geoserver}/{route}/{service}"
+
+    params = dict(service="WFS",
+                  version="2.0.0",
+                  request="GetFeature",
+                  typeName=(route +
+                            ":ckan_a0d8838b_2423_4c8b_a7d9_b04eb240a2b1"),
+                  outputFormat="json")
+    features = requests.get(wfsurl, params=params).json()
+    region_location_df = gpd.GeoDataFrame.from_features(features).set_crs(
+        projection)
+
+    only_key_regions = region_location_df["vic_stat_2"].isin(key_regions)
+    region_location_df = (
+        region_location_df.loc[only_key_regions,
+                               ["vic_stat_2", "geometry"]].dissolve(
+                                   by="vic_stat_2").reset_index())
+    background = region_location_df.plot(column="vic_stat_2",
+                                         edgecolor="black",
+                                         figsize=(15, 15),
+                                         legend=True)
+    plt.ylabel("Latitude")
+    plt.xlabel("Longitude")
+    background.set(title="Regiones del Territorio de Victoria, Australia")
+
+    if column_name_colorbar is not None:
+        cmap = seaborn.color_palette("flare", as_cmap=True)
+        points = locations_df.plot(ax=background,
+                                   marker="o",
+                                   markersize=3,
+                                   column=column_name_colorbar,
+                                   cmap=cmap)
+
+        fig = points.get_figure()
+        cbax = fig.add_axes([0.95, 0.2, 0.04, 0.60])
+        cbax.set_title(column_name_colorbar)
+        sm = plt.cm.ScalarMappable(
+            cmap=cmap,
+            norm=plt.Normalize(vmin=min(locations_df[column_name_colorbar]),
+                               vmax=max(locations_df[column_name_colorbar])))
+        fig.colorbar(sm, cax=cbax, format="%d")
+    else:
+        points = locations_df.plot(ax=background,
+                                   marker="o",
+                                   markersize=3,
+                                   color="r")
 # %%
 URL_MELB_HOUSING_DATA = "https://www.famaf.unc.edu.ar/~nocampo043/melb_housing_df.csv"
 URL_MELB_SUBURB_DATA = "https://www.famaf.unc.edu.ar/~nocampo043/melb_suburb_df.csv"
@@ -477,6 +531,7 @@ donde se obtiene una representación geométrica de las regiones.
 geoserver = "https://data.gov.au/geoserver"
 route = "vic-state-electoral-boundaries-psma-administrative-boundaries"
 service = "wfs"
+projection = "EPSG:3110"
 
 wfsurl = f"{geoserver}/{route}/{service}"
 
@@ -486,8 +541,10 @@ params = dict(service="WFS",
               typeName=(route + ":ckan_a0d8838b_2423_4c8b_a7d9_b04eb240a2b1"),
               outputFormat="json")
 
-region_location_df = gpd.GeoDataFrame.from_features(
-    requests.get(wfsurl, params=params).json()).set_crs("EPSG:3110")
+features = requests.get(wfsurl, params=params).json()
+
+region_location_df = gpd.GeoDataFrame.from_features(features).set_crs(
+    projection)
 
 region_location_df.head()
 # %% [markdown]
@@ -505,16 +562,6 @@ las que se tiene registro en el conjunto de datos inicial.
 key_regions = [
     region.upper() for region in melb_suburb_df["suburb_region_name"].unique()
 ]
-
-region_location_df = region_location_df[["vic_stat_2", "geometry"]]
-only_key_regions = region_location_df["vic_stat_2"].isin(key_regions)
-
-region_location_df = (
-    region_location_df[only_key_regions]
-        .dissolve(by="vic_stat_2")
-        .reset_index()
-)
-region_location_df
 # %% [markdown]
 """
 De manera similar, se necesita convertir las coordenadas de las propiedades
@@ -523,22 +570,13 @@ zonas recolectadas. En particular, en este caso serán representados como un
 objeto `POINT`. El *dataframe* subyacente es el siguiente:
 """
 # %%
-house_location_cols = [
-    "housing_cbd_distance", "housing_lattitude", "housing_longitude"
-]
-suburb_location_cols = ["suburb_region_name", "suburb_property_count"]
-
-house_location_df = (
-    melb_housing_df[house_location_cols + ["housing_price", "suburb_id"]]
-        .join(melb_suburb_df[suburb_location_cols], on="suburb_id"))
-
-house_location_df = gpd.GeoDataFrame(
-    house_location_df,
+locations_df = gpd.GeoDataFrame(
+    melb_housing_df[["housing_lattitude", "housing_longitude"]],
     geometry=gpd.points_from_xy(
-        house_location_df["housing_longitude"],
-        house_location_df["housing_lattitude"])).set_crs("EPSG:3110")
+        melb_housing_df["housing_longitude"],
+        melb_housing_df["housing_lattitude"])).set_crs("EPSG:3110")
 
-house_location_df.head()
+locations_df.head()
 # %% [markdown]
 """
 Finalmente, se procede a graficar las zonas limítrofes de Melbourne
@@ -548,15 +586,7 @@ de las ventas (en color rojo) se concentran en la región Metropolitana
 `Northern Metropolitan`).
 """
 # %%
-background = region_location_df.plot(column="vic_stat_2",
-                                     edgecolor="black",
-                                     figsize=(15, 15),
-                                     legend=True)
-
-properties = house_location_df.plot(ax=background, marker="o", color="red")
-background.set(title="Regiones del Territorio de Victoria, Australia")
-plt.ylabel("Latitude")
-plt.xlabel("Longitude")
+plot_melbourne_map(locations_df, key_regions)
 # %% [markdown]
 """
 Para observar con mayor detalle la zona metropolitana, se filtran las entradas
@@ -572,37 +602,8 @@ metropolitan_regions = [
     if region_name.endswith("METROPOLITAN")
 ]
 
-only_metropolitan = (
-    region_location_df["vic_stat_2"].isin(metropolitan_regions))
-region_location_df = region_location_df[only_metropolitan]
-# %%
-cmap = seaborn.color_palette("flare", as_cmap=True)
-
-background = region_location_df.plot(column="vic_stat_2",
-                                     edgecolor="black",
-                                     figsize=(11, 11),
-                                     legend=True)
-properties = house_location_df.plot(ax=background,
-                                    marker="o",
-                                    markersize=3,
-                                    column="housing_cbd_distance",
-                                    cmap=cmap)
-
-background.set(title="Área Metropolitana- Victoria, Australia")
-
-plt.ylabel("Latitude")
-plt.xlabel("Longitude")
-
-fig = properties.get_figure()
-
-cbax = fig.add_axes([0.95, 0.2, 0.04, 0.60])
-cbax.set_title("Distancia al centro")
-
-sm = plt.cm.ScalarMappable(
-    cmap=cmap,
-    norm=plt.Normalize(vmin=min(house_location_df["housing_cbd_distance"]),
-                       vmax=max(house_location_df["housing_cbd_distance"])))
-fig.colorbar(sm, cax=cbax, format="%d")
+plot_melbourne_map(locations_df.join(melb_housing_df["housing_cbd_distance"]),
+                   metropolitan_regions, "housing_cbd_distance")
 # %% [markdown]
 """
 También, se realizó otro mapa incluyendo a la variable `housing_price`, el cual
@@ -611,33 +612,8 @@ muestra que los precios de vivienda más altos se localizan en las regiones de
 gráfico. Capaz se podría hacer una función.
 """
 # %%
-cmap = seaborn.color_palette("flare", as_cmap=True)
-
-background = region_location_df.plot(column="vic_stat_2",
-                                     edgecolor="black",
-                                     figsize=(11, 11),
-                                     legend=True)
-properties = house_location_df.plot(ax=background,
-                                    marker="o",
-                                    markersize=3,
-                                    column="housing_price",
-                                    cmap=cmap)
-
-background.set(title="Área Metropolitana- Victoria, Australia")
-
-plt.ylabel("Latitude")
-plt.xlabel("Longitude")
-
-fig = properties.get_figure()
-
-cbax = fig.add_axes([0.95, 0.2, 0.04, 0.60])
-cbax.set_title("Precio de venta")
-
-sm = plt.cm.ScalarMappable(cmap=cmap,
-                           norm=plt.Normalize(
-                               vmin=min(house_location_df["housing_price"]),
-                               vmax=max(house_location_df["housing_price"])))
-fig.colorbar(sm, cax=cbax, format="%d")
+plot_melbourne_map(locations_df.join(melb_housing_df["housing_price"]),
+                   metropolitan_regions, "housing_price")
 # %% [markdown]
 """
 Estas observaciones dejan en evidencia que la localización de las viviendas
@@ -691,36 +667,13 @@ plt.xticks(rotation=40)
 ## Cantidad de propiedades por suburbio (`suburb_property_count`)
 """
 # %%
-cmap = seaborn.color_palette("flare", as_cmap=True)
-
-base = region_location_df.plot(column="vic_stat_2",
-                               categorical=True,
-                               edgecolor="black",
-                               figsize=(11, 11),
-                               legend=True)
-puntos = (
-    house_location_df
-        .join()
-        .plot(ax=base, marker="o",
-              markersize=3,
-              column="suburb_property_count",
-              cmap=cmap)
-)
-base.set(title="Área Metropolitana- Victoria, Australia")
-
-plt.ylabel("Latitude")
-plt.xlabel("Longitude")
-
-fig = puntos.get_figure()
-
-cbax.set_title("Número de propiedades por suburbio")
-
-sm = plt.cm.ScalarMappable(
-    cmap=cmap,
-    norm=plt.Normalize(vmin=min(house_location_df["suburb_property_count"]),
-                       vmax=max(house_location_df["suburb_property_count"])))
-
-fig.colorbar(sm, cax=cbax, format="%d")
+plot_melbourne_map(
+    (
+        locations_df
+            .join(melb_housing_df["suburb_id"])
+            .join(melb_suburb_df["suburb_property_count"], on="suburb_id")
+    ),
+    metropolitan_regions, "suburb_property_count")
 # %% [markdown]
 """
 ## Departamento gubernamental (`housing_council_area`)
