@@ -239,7 +239,7 @@ existe un aumento de la mediana del precio de venta y su variabilidad.
 """
 # %% [markdown]
 """
-### Cantidad de baños (`housing_bathroom`)
+### Cantidad de baños (`housing_bathroom_count`)
 
 La cantidad de baños de las viviendas vendidas se encuentran en su mayoría entre
 1 y 3 siendo valores más atípicos las que superan este rango. Por otro lado, se
@@ -773,20 +773,21 @@ seaborn.boxenplot(melb_housing_df["housing_year_built"])
 Se observa que los años de construcción de las viviendas se distribuyen entre
 los años 1800 y 2010, con excepción de una sola propiedad construída en el año
 1200. Dado que el objetivo es predecir el precio de venta de las viviendas, se
-      consideró seleccionar el rango que abarca la mayor cantidad de ventas,
-      eliminando el valor de vivienda construída en el 1200 por considerar que
-      tiene una baja probabilidad de ocurrencia.
+consideró seleccionar el rango que abarca la mayor cantidad de ventas,
+eliminando el valor de vivienda construída en el 1200 por considerar que
+tiene una baja probabilidad de ocurrencia.
 """
 
 # %%
-melb_housing_df[melb_housing_df['housing_year_built']<1800]
-
+old_atypical_house = melb_housing_df[
+    melb_housing_df['housing_year_built'] < 1800]
+old_atypical_house
 # %%
-melb_housing_df = melb_housing_df[melb_housing_df['housing_year_built'] > 1800]
-melb_housing_df['housing_year_built'].describe()
-
+melb_housing_df = melb_housing_df.drop(old_atypical_house.index)
 # %%
-seaborn.lineplot(data=melb_housing_df, x="housing_year_built", y='housing_price')
+seaborn.lineplot(data=melb_housing_df,
+                 x="housing_year_built",
+                 y='housing_price')
 
 # %% [markdown]
 """
@@ -806,12 +807,12 @@ En conclusión para continuar con el análisis, se procedió a seleccionar las
 siguientes variables:
 
 - Precio de venta (housing_price)
-- Cantidad de ambientes (housing_room_count)
-- Cantidad de baños (housing_bathroom)
+- Cantidad de ambientes (housing_room_segment)
+- Cantidad de baños (housing_bathroom_segment)
 - Tamaño del terreno (housing_land_size)
 - Tamaño de la construcción (housing_bulding_area)
 - Tipo de vivienda (housing_type)
-- Región (suburb_region_name)
+- Región (suburb_region_segment)
 - Departamento gubernamental (suburb_council_area)
 - Año de construcción (housing_year_built)
 """
@@ -834,12 +835,12 @@ valores faltantes de la variable `suburb_council_area` en función a la columna
 siguientes suburbios.
 """
 # %%
-melb_suburb_df.loc[melb_suburb_df["suburb_council_area"].isna(), "suburb_council_area"]
+melb_suburb_df[melb_suburb_df["suburb_council_area"].isna()]
 # %% [markdown]
 """
 Para asignar estos valores faltantes se buscaron los departamentos
 gubernamentales de tales suburbios a partir de una [fuente externa de códigos
-postales australianos](https://github.com/matthewproctor/australianpostcodes).
+postales de Melbourne ](https://github.com/matthewproctor/australianpostcodes).
 
 - `Burnside`: Melton - Bacchus Marsh
 - `Attwood`: Hume
@@ -881,7 +882,7 @@ melb_suburb_df["suburb_rental_dailyprice"].isna().sum()
 
 # %% [markdown]
 """
-Luego de efectuar la combinación con el Dataset de Airnb, nos quedaron 114
+Luego de efectuar la combinación con el *Dataset* de Airnb, nos quedaron 114
 valores nulos en la columna `suburb_rental_daylyprice`. A continuación se
 efectúa la imputación de dicha variable.
 """
@@ -918,3 +919,32 @@ Se observa que ya no existen valores faltantes en la columna
 `suburb_rental_dailyprice`. Para un análisis posterior, se cree que una
 imputación del tipo KNN nos podría dar mayor información sobre esta variable.
 """
+
+# %% [markdown]
+"""
+### Creación del conjunto de datos
+A continuación, se procedió a remover las columnas no seleccionadas y guardarlo
+en un archivo `.csv`
+"""
+# %%
+selected_housing_columns = [
+    "housing_price",
+    "housing_room_segment",
+    "housing_bathroom_segment",
+    "housing_land_size",
+    "housing_building_area",
+    "housing_type",
+    "housing_year_built"
+]
+selected_suburb_columns = [
+    "suburb_region_segment",
+    "suburb_council_area",
+    "suburb_rental_dailyprice"
+]
+
+melb_housing_filtered_df = melb_housing_df[selected_housing_columns]
+
+melb_suburb_filtered_df = melb_suburb_df[selected_suburb_columns]
+# %%
+melb_housing_filtered_df.to_csv("melb_housing_filtered_df.csv", index=False)
+melb_suburb_filtered_df.to_csv("melb_suburb_filtered_df.csv", index=False)
