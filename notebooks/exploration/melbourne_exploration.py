@@ -31,6 +31,9 @@ fueron obtenidos en `normalize_melbourne_dataset.ipynb` alojados en un servidor
 de la Universidad Nacional de Córdoba para facilitar su acceso remoto.
 """
 # %%
+# !pip install geopandas
+
+# %%
 from typing import Tuple, List, Optional
 import pandas as pd
 import numpy as np
@@ -74,8 +77,8 @@ def plot_melbourne_map(locations_df: gpd.GeoDataFrame,
                        key_regions: List[str],
                        column_name_colorbar: Optional[str] = None) -> None:
     """
-    Plots a map of the surroundings of Melbourne, displaying the regions given by
-    @key_regions. @location_df needs to be a geodataframe that contains the
+    Plots a map of the surroundings of Melbourne, displaying the regions given
+    by @key_regions. @location_df needs to be a geodataframe that contains the
     latitude and longitude as pandas points, so they can be superimposed on the
     background map. If @column_name_colorbar is provided, it needs to be the
     name of a column of @locations_df. Then, it colors the points and adds a
@@ -159,8 +162,9 @@ plt.ticklabel_format(style="plain", axis="x")
 """
 Se observa la presencia de outliers en la variable `housing_price`, por encima
 de los 6 millones. Se decidió eliminar aquellos valores atípicos que se
-encuentran alejados de la media, más allá de 2.5 veces su desviación estandar.
-TODO: Explicar cuál es la razón de que se descarten estos valores.
+encuentran alejados de la media, más allá de 2.5 veces su desviación estandar ya
+que solo es de interés conocer el precio de venta de aquellas viviendas
+comercializadas con mayor frecuencia.
 """
 # %%
 melb_housing_df, melb_housing_outliers_df = clean_outliers(
@@ -290,6 +294,9 @@ melb_housing_df = melb_housing_df.assign(housing_garage_segment=to_categorical(
     min_cut=None,
     max_cut=2))
 # %%
+melb_housing_df["housing_garage_segment"].unique()
+
+# %%
 plt.figure(figsize=(16, 8))
 seaborn.boxplot(x="housing_garage_segment",
                 y="housing_price",
@@ -301,8 +308,7 @@ plt.ticklabel_format(style='plain', axis='y')
 """
 A excepción de las viviendas con un garage, el resto de categorías pareciera que
 se comportan de manera similar ante la variable precio, por lo tanto se decidió
-no seleccionar `housing_garage_count`. TODO: Verlo con Aldana. ¿Decidir sacarla?
-¿Como tomar la decisión de descartarlo?
+no seleccionar `housing_garage_count`. TODO: **corregir xticks**
 """
 # %% [markdown]
 """
@@ -316,12 +322,13 @@ seaborn.pairplot(data=melb_housing_df.sample(2500),
                  height=4)
 # %% [markdown]
 """
-TODO: Verlo con Aldana. ¿Decidir sacarla? ¿Como tomar la decisión de
-descartarlo?
+Si bien el gráfico no muestra una relación entre el precio de venta y el tamaño
+del terreno, se cree que puede ser importante en la predicción junto con el
+resto de las variables.
 """
 # %% [markdown]
 """
-## Área de construcción (`housing_building_area`)
+### Área de construcción (`housing_building_area`)
 Se considera que esta variable es importante para predecir el precio, por ende
 se procedió a imputar sus valores faltantes en una sección posterior.
 """
@@ -370,29 +377,6 @@ propiedad.
   valores un poco superiores a los 900 mil. Estando el rango intercuartil
   comprendido entre los 670 mil y 1,1 millones. Se observa que los valores
   máximos llegan también a casi 2,5 millones.
-"""
-# %% [markdown]
-"""
-Visualizando los valores extremos del precio en función de esta variable se
-obtiene. TODO: Cuando eliminar outliers? que análisis se hacen para quitarlos?
-"""
-# %%
-(
-    melb_housing_outliers_df[["housing_type", "housing_price"]]
-        .groupby("housing_type")
-        .describe()
-        .round(2)
-)
-# %%
-plt.figure(figsize=(8,8))
-seaborn.boxenplot(data=melb_housing_outliers_df,
-                  x="housing_price",
-                  y="housing_type")
-plt.ticklabel_format(style="plain", axis="x")
-# %% [markdown]
-"""
-Se observa que dentro de los outliers se están eliminando en mayor cantidad
-casas con precios comprendidos entre los 3 millones y los 9 millones.
 """
 # %% [markdown]
 """
@@ -489,7 +473,7 @@ composición. Por lo tanto tampoco se decidió seleccionarla.
 """
 # %% [markdown]
 """
-### Región y distancia al distrito central comercial (`housing_region_name`, y `housing_cbd_distance`)
+### Región y distancia al distrito central comercial (`suburb_region_name`, y `housing_cbd_distance`)
 Para analizar las medidas de tendencia central del precio de las viviendas por
 región se realizó un boxplot como se muestra a continuación.
 """
@@ -527,12 +511,14 @@ de
 )
 # %% [markdown]
 """
-## Geolocalización de propiedades por región
+#### Geolocalización de propiedades por región
 El objetivo es ver la geolocalización de los datos en las diferentes regiones
 del Territorio de Victoria, Australia. A continuación, se muestra una imagen
 extraída de Wikipedia.
 
-<img src="../graphs/melbourne_by_region.png" alt="melbourne by region">
+<img
+src="https://github.com/benjaminocampo/DataCuration/blob/master/notebooks/graphs/melbourne_by_region.png?raw=1"
+alt="melbourne by region">
 
 Se utilizó el servicio de [wfs de geoserver](https://data.gov.au/geoserver)
 donde se obtiene una representación geométrica de las regiones.
@@ -618,8 +604,7 @@ plot_melbourne_map(locations_df.join(melb_housing_df["housing_cbd_distance"]),
 """
 También, se realizó otro mapa incluyendo a la variable `housing_price`, el cual
 muestra que los precios de vivienda más altos se localizan en las regiones de
-`Southern Metropolitan` y `Estearn Metropolitan`. TODO: Se repite el código del
-gráfico. Capaz se podría hacer una función.
+`Southern Metropolitan` y `Estearn Metropolitan`.
 """
 # %%
 plot_melbourne_map(locations_df.join(melb_housing_df["housing_price"]),
@@ -674,7 +659,7 @@ plt.ticklabel_format(style="plain", axis="y")
 plt.xticks(rotation=40)
 # %% [markdown]
 """
-## Cantidad de propiedades por suburbio (`suburb_property_count`)
+### Cantidad de propiedades por suburbio (`suburb_property_count`)
 """
 # %%
 plot_melbourne_map(
@@ -686,7 +671,15 @@ plot_melbourne_map(
     metropolitan_regions, "suburb_property_count")
 # %% [markdown]
 """
-## Departamento gubernamental (`housing_council_area`)
+Se puede visualizar en los mapas anteriormente expuestos, que los suburbios que
+tienen mayor cantidad de propiedades, no necesariamente son los que mayores
+precios de venta tienen. Por ejemplo, en la región `SOUTHERN METROPOLITAN` se
+encuentran los precios más altos (color violeta más oscuro), sin embargo en esa
+región suburb_property_count presenta una mayor variabilidad. 
+"""
+# %% [markdown]
+"""
+### Departamento gubernamental (`suburb_council_area`)
 Analizando las medidas de tendencia central para las variables
 `suburb_council_area` y `housing_price` se observa que algunos departamentos
 tienen una única vivienda con precio y otros como `Boroondara` tiene más de 1000
@@ -694,7 +687,7 @@ viviendas. Esto muestra la disparidad en la cantidad de ventas registradas en
 los diferentes departamentos. Dado que está variable brinda información similar
 a otras ya disponibles en el *dataset* no se la consideró relevante para estimar
 el precio, sin embargo, se la seleccionó para continuar con el resto de las
-consignas de el entregable.
+consignas del entregable.
 """
 # %%
 (
@@ -705,26 +698,19 @@ consignas de el entregable.
 )
 # %% [markdown]
 """
-## Fecha de venta y año de construcción (`housing_date_sold` y `housing_year_built`)
+### Fecha de venta (`housing_date_sold`)
 El tiempo en el que se vendió una propiedad puede ser relevante si se consideran
-inflación o cuestiones económicas durante el período de venta. Dado que el
-conjunto de datos corresponden a ventas de 2016 y 2017, es importante saber como
-fluctuó el precio durante este intervalo. Por ende, se trabajó sobre esta
-variable combirtiendo inicialmente los datos en objetos `datetime`.
+variables como inflación o burbujas inmoboliarias durante el período de venta.
+Dado que el conjunto de datos corresponden a ventas efectuadas durante los años
+2016 y 2017, es importante saber como fluctuó el precio durante este intervalo.
+Por ende, se trabajó sobre esta variable convirtiendo inicialmente los datos en
+objetos `datetime`.
 """
 # %%
 melb_housing_df = melb_housing_df.assign(
     housing_date_sold_datetime=pd.to_datetime(
         melb_housing_df["housing_date_sold"]))
-# %% [markdown]
-"""
-Observando la fecha y precio de venta no se encuentra una tendencia en algún
-periodo en particular. Las propiedades vendidas se encontraron entre los 800000
-a 120000 con una alta variabilidad que se obtiene probablemente a que se están
-considerando no solo los años y meses, sino también el día de venta, siendo
-quizás no tan relevante si se desea identificar un período donde se realizaron
-ventas de un alto valor.
-"""
+melb_housing_df["housing_date_sold_datetime"]
 # %%
 seaborn.lineplot(data=melb_housing_df,
                  x="housing_date_sold_datetime",
@@ -733,16 +719,16 @@ plt.ticklabel_format(style="plain", axis="y")
 plt.xticks(rotation=45)
 # %% [markdown]
 """
-Si se desconsidera el día de venta, se obtiene una menor variabilidad pero aún
-así no se perciben fluctuaciones en el precio salvo quizás para inicios,
-mediados, y fines del 2017 donde se dieron ventas con precio menor en
-comparación al 2016.
+No se observa una tendencia entre la fecha y el precio de venta. Las propiedades
+vendidas fluctuan entre los 800000 a 120000 con una alta variabilidad que se
+obtiene probablemente a que se están considerando no solo los años y meses, sino
+también el día de la venta, siendo esto quizás no tan relevante si se desea
+identificar un período donde se realizaron ventas de un alto valor.
 """
 # %%
 melb_housing_df = melb_housing_df.assign(
-    housing_date_sold_datetime=pd.to_datetime(
-        melb_housing_df["housing_date_sold_datetime"].dt.strftime("%Y-%m")))
-# %%
+    housing_date_sold_datetime= pd.to_datetime(melb_housing_df["housing_date_sold_datetime"].dt.strftime("%Y-%m")))
+
 seaborn.lineplot(data=melb_housing_df,
                  x="housing_date_sold_datetime",
                  y="housing_price")
@@ -750,14 +736,148 @@ plt.ticklabel_format(style="plain", axis="y")
 plt.xticks(rotation=45)
 # %% [markdown]
 """
-Se puede ver que la frecuencia de ventas en algún mes en particular salvo para
-inicios y fin del 2017 que se corresponden con las
+Si nos quedamos solamente con el mes y año de venta, se observa una menor
+variabilidad pero aún así no se perciben una tendencia clara en las
+fluctuaciones del precio.
 """
 # %%
+melb_housing_df = melb_housing_df.assign(
+    housing_date_sold_datetime=melb_housing_df["housing_date_sold_datetime"].
+    dt.strftime("%Y-%m"))
+
 plt.figure(figsize=(10, 10))
-seaborn.countplot(
-    melb_housing_df["housing_date_sold_datetime"]
-        .dt.month
-)
+seaborn.barplot(data=melb_housing_df,
+                x="housing_date_sold_datetime",
+                y="housing_price",
+                estimator=np.mean)
 plt.xticks(rotation=45)
+# %% [markdown]
+"""
+Se puede observar que los precios de venta en promedio son similares en los
+diferentes meses. Por lo tanto, se cree que debido al bajo rango de fechas que
+posee este dataset esta variable no sería significativa para estimar el precio
+de venta de las casas. 
+"""
+# %% [markdown]
+"""
+### Año de construcción (`housing_year_built`)
+"""
+
 # %%
+seaborn.boxenplot(melb_housing_df["housing_year_built"])
+
+# %% [markdown]
+"""
+Se observa que los años de construcción de las viviendas se distribuyen entre
+los años 1800 y 2010, con excepción de una sola propiedad construída en el año
+1200. Dado que el objetivo es predecir el precio de venta de las viviendas, se
+      consideró seleccionar el rango que abarca la mayor cantidad de ventas,
+      eliminando el valor de vivienda construída en el 1200 por considerar que
+      tiene una baja probabilidad de ocurrencia.
+"""
+
+# %%
+melb_housing_df[melb_housing_df['housing_year_built']<1800]
+
+# %%
+melb_housing_df = melb_housing_df[melb_housing_df['housing_year_built'] > 1800]
+melb_housing_df['housing_year_built'].describe()
+
+# %%
+seaborn.lineplot(data=melb_housing_df, x="housing_year_built", y='housing_price')
+
+# %% [markdown]
+"""
+Se observa que las viviendas más antiguas tienen precios de venta más altos en
+comparación con las propiedades más nuevas. El año de construcción junto a la
+fecha de venta dan información acerca de la antiguedad de la propiedad. Debido a
+que las ventas fueron realizadas en un lapso corto de tiempo (2 años), se
+decidió seleccionar unicamente la variable `housing_year_built` ya que se podría
+obtener la misma información.
+"""
+
+# %% [markdown]
+"""
+### Variables seleccionadas
+
+En conclusión para continuar con el análisis, se procedió a seleccionar las
+siguientes variables:
+
+- Precio de venta (housing_price)
+- Cantidad de ambientes (housing_room_count)
+- Cantidad de baños (housing_bathroom)
+- Tamaño del terreno (housing_land_size)
+- Tamaño de la construcción (housing_bulding_area)
+- Tipo de vivienda (housing_type)
+- Región (suburb_region_name)
+- Departamento gubernamental (suburb_council_area)
+- Año de construcción (housing_year_built)
+"""
+
+# %% [markdown]
+"""
+## Imputación
+"""
+
+# %% [markdown]
+"""
+### Departamento gubernamental (`suburb_council_area`) 
+"""
+
+# %% [markdown]
+"""
+Recordemos que en la notebook `combine_airbnb_dataset.ipynb` se imputaron los
+valores faltantes de la variable `suburb_council_area` en función a la columna
+`suburb`. Sin embargo, quedaron 6 filas sin poder imputar. TODO: Continuar
+"""
+
+# %% [markdown]
+"""
+### Columnas Dataset Airnb (`suburb_rental_dailyprice`)
+"""
+
+# %%
+msno.bar(melb_suburb_df, figsize=(12, 6), fontsize=12, color='steelblue')
+
+# %%
+melb_suburb_df["suburb_rental_dailyprice"].isna().sum()
+
+# %% [markdown]
+"""
+Luego de efectuar la combinación con el Dataset de Airnb, nos quedaron 114
+valores nulos en la columna `suburb_rental_daylyprice`. A continuación se
+efectúa la imputación de dicha variable.
+"""
+
+# %%
+melb_suburb_df["suburb_rental_dailyprice"].describe()
+
+# %%
+plt.figure(figsize=(8, 8))
+seaborn.boxenplot(data=melb_suburb_df, x="suburb_rental_dailyprice")
+plt.ticklabel_format(style="plain", axis="x")
+
+# %% [markdown]
+"""
+Podemos ver que la distribución es bastante simetrica (la media y la mediana se
+encuentran en valores cercanos), por lo cual se imputó esta variable por su
+valor medio.
+"""
+
+# %%
+melb_suburb_df["suburb_rental_dailyprice"] = (
+    melb_suburb_df["suburb_rental_dailyprice"]
+        .fillna(melb_suburb_df["suburb_rental_dailyprice"].mean())
+)
+melb_suburb_df.suburb_rental_dailyprice.isna().sum()
+
+
+# %%
+msno.bar(melb_suburb_df, figsize=(12, 6), fontsize=12, color='steelblue')
+
+# %% [markdown]
+"""
+Se observa que ya no existen valores faltantes en la columna
+`suburb_rental_dailyprice`. Para un análisis posterior, se cree que una
+imputación del tipo KNN nos podría dar mayor información sobre esta variable.
+"""
