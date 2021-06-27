@@ -830,9 +830,44 @@ siguientes variables:
 """
 Recordemos que en la notebook `combine_airbnb_dataset.ipynb` se imputaron los
 valores faltantes de la variable `suburb_council_area` en función a la columna
-`suburb`. Sin embargo, quedaron 6 filas sin poder imputar. TODO: Continuar
+`suburb`. Sin embargo, quedaron 6 filas sin poder imputar y corresponden a los
+siguientes suburbios.
 """
+# %%
+melb_suburb_df.loc[melb_suburb_df["suburb_council_area"].isna(), "suburb_council_area"]
+# %% [markdown]
+"""
+Para asignar estos valores faltantes se buscaron los departamentos
+gubernamentales de tales suburbios a partir de una [fuente externa de códigos
+postales australianos](https://github.com/matthewproctor/australianpostcodes).
 
+- `Burnside`: Melton - Bacchus Marsh
+- `Attwood`: Hume
+- `Plumpton`: Melton - Bacchus Marsh
+- `New Gisborne`: Macedon Ranges
+- `Wallan`: Macedon Ranges
+- `Monbulk`: Yarra Ranges
+"""
+# %%
+new_councils = {
+    "Burnside": "Melton - Bacchus Marsh",
+    "Attwood": "Hume",
+    "Plumpton": "Melton - Bacchus Marsh",
+    "New Gisborne": "Macedon Ranges",
+    "Wallan": "Macedon Ranges",
+    "Monbulk": "Yarra Ranges"
+}
+
+missing_suburbs = melb_suburb_df["suburb_name"].isin(new_councils.keys())
+
+filled_suburbs = (
+    melb_suburb_df
+        .loc[missing_suburbs, "suburb_name"]
+        .apply(lambda suburb: [new_councils[suburb]])
+)
+
+melb_suburb_df.loc[missing_suburbs, "suburb_council_area"] = filled_suburbs
+melb_suburb_df[missing_suburbs]
 # %% [markdown]
 """
 ### Columnas Dataset Airnb (`suburb_rental_dailyprice`)
