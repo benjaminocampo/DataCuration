@@ -806,15 +806,16 @@ obtener la misma información.
 En conclusión para continuar con el análisis, se procedió a seleccionar las
 siguientes variables:
 
-- Precio de venta (housing_price)
-- Cantidad de ambientes (housing_room_segment)
-- Cantidad de baños (housing_bathroom_segment)
-- Tamaño del terreno (housing_land_size)
-- Tamaño de la construcción (housing_bulding_area)
-- Tipo de vivienda (housing_type)
-- Región (suburb_region_segment)
-- Departamento gubernamental (suburb_council_area)
-- Año de construcción (housing_year_built)
+- Precio de venta (`housing_price`)
+- Cantidad de ambientes (`housing_room_segment`)
+- Cantidad de baños (`housing_bathroom_segment`)
+- Tamaño del terreno (`housing_land_size`)
+- Tamaño de la construcción (`housing_bulding_area`)
+- Tipo de vivienda (`housing_type`)
+- Año de construcción (`housing_year_built`)
+- Región (`suburb_region_segment`)
+- Departamento gubernamental (`suburb_council_area`)
+- Nombre de región (`suburb_name`)
 """
 
 # %% [markdown]
@@ -934,9 +935,11 @@ selected_housing_columns = [
     "housing_land_size",
     "housing_building_area",
     "housing_type",
-    "housing_year_built"
+    "housing_year_built",
+    "suburb_id"
 ]
 selected_suburb_columns = [
+    "suburb_name",
     "suburb_region_segment",
     "suburb_council_area",
     "suburb_rental_dailyprice"
@@ -948,3 +951,5 @@ melb_suburb_filtered_df = melb_suburb_df[selected_suburb_columns]
 # %%
 melb_housing_filtered_df.to_csv("melb_housing_filtered_df.csv", index=False)
 melb_suburb_filtered_df.to_csv("melb_suburb_filtered_df.csv", index=False)
+
+# %%
