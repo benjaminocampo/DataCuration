@@ -153,6 +153,8 @@ procedió a analizar cuáles son las variables que influyen.
 # %% [markdown]
 """
 ### Precio de venta (`housing_price`)
+
+#### Eliminación de *outliers*
 """
 # %%
 plt.figure(figsize=(8, 8))
