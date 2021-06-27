@@ -934,7 +934,8 @@ selected_housing_columns = [
     "housing_land_size",
     "housing_building_area",
     "housing_type",
-    "housing_year_built"
+    "housing_year_built",
+    "suburb_id"
 ]
 selected_suburb_columns = [
     "suburb_region_segment",
