@@ -83,19 +83,44 @@ vectorizer.get_feature_names()
 """
 ## Imputación por KNN
 """
+# %% [markdown]
+"""
+### Sin escalado
+"""
 # %%
 missing_cols = ["housing_year_built", "housing_building_area"]
-missing_df = melb_combined_df[missing_cols]
-all_df = np.hstack([missing_df, feature_matrix.todense()])
 estimator = neighbors.KNeighborsRegressor(n_neighbors=2)
 # %%
+missing_df = melb_combined_df[missing_cols]
+original_df = missing_df.dropna()
+all_df = np.hstack([missing_df, feature_matrix.todense()])
+
 knn_missing_cols = impute_by(missing_df, missing_cols, estimator)
 knn_all_cols = impute_by(all_df, missing_cols, estimator)
 # %%
 imputations = [
-    ("original", missing_df.dropna()),
+    ("original", original_df),
     ("knn - missing cols", knn_missing_cols),
     ("knn - all cols", knn_all_cols)
+]
+plot_imputation_graph(imputations, missing_cols)
+# %% [markdown]
+"""
+### Con escalado
+"""
+# %%
+scaler = preprocessing.StandardScaler()
+original_scaled_df = pd.DataFrame(scaler.fit_transform(original_df),
+                                  columns=missing_cols)
+knn_scaled_missing_cols = impute_by(scaler.fit_transform(missing_df),
+                                    missing_cols, estimator)
+knn_scaled_all_cols = impute_by(scaler.fit_transform(all_df), missing_cols,
+                                estimator)
+# %%
+imputations = [
+    ("scaled original", original_scaled_df),
+    ("knn - scaled missing cols", knn_scaled_missing_cols),
+    ("knn - scaled all cols", knn_scaled_all_cols)
 ]
 plot_imputation_graph(imputations, missing_cols)
 # %% [markdown]
