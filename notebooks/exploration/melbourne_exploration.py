@@ -31,7 +31,7 @@ fueron obtenidos en `normalize_melbourne_dataset.ipynb` alojados en un servidor
 de la Universidad Nacional de Córdoba para facilitar su acceso remoto.
 """
 # %%
-# !pip install geopandas
+# #!pip install geopandas
 
 # %%
 from typing import Tuple, List, Optional
@@ -338,6 +338,28 @@ se procedió a imputar sus valores faltantes en una sección posterior.
 msno.bar(melb_housing_df[["housing_price", "housing_building_area"]],
          figsize=(12, 6),
          fontsize=12)
+# %%
+plt.figure(figsize=(16, 8))
+seaborn.boxplot(x="housing_building_area",
+                data=melb_housing_df)
+plt.ticklabel_format(style="plain", axis="x")
+
+# %% [markdown]
+"""
+Se puede observar la presencia de un valor extremo de 44515. Se decidió eliminar este valor ya que se aleja demasiado del rango de viviendas que se estuvo considerando.
+"""
+
+# %%
+big_area = melb_housing_df[
+    melb_housing_df['housing_building_area'] > 10000]
+big_area
+
+# %%
+melb_housing_df = melb_housing_df.drop(big_area.index)
+
+# %%
+melb_housing_df[[ "housing_building_area"]].describe()
+
 # %% [markdown]
 """
 ### Tipo de vivienda (`housing_type`)
@@ -782,6 +804,7 @@ tiene una baja probabilidad de ocurrencia.
 old_atypical_house = melb_housing_df[
     melb_housing_df['housing_year_built'] < 1800]
 old_atypical_house
+
 # %%
 melb_housing_df = melb_housing_df.drop(old_atypical_house.index)
 # %%
