@@ -25,13 +25,20 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn
-from sklearn import preprocessing, impute, neighbors, feature_extraction, pipeline
 from sklearn.experimental import enable_iterative_imputer
-from typing import List, Tuple
+from sklearn import (base, feature_extraction, impute, neighbors,
+                     preprocessing)
+from typing import List, Tuple, Union
 
 
-def plot_imputation_graph(imputations: Tuple[str, List[pd.DataFrame]],
+def plot_imputation_graph(imputations: List[Tuple[str, pd.DataFrame]],
                           missing_cols: List[str]) -> None:
+    """
+    Makes a group of density plots according to the number of columns on the
+    dataframes inside @imputations. @imputations must be a list of pairs
+    (@method_name, @value_df) where each @value_df has the same @missing_cols
+    obtained by its corresponding imputer @method_name.
+    """
     _, axs = plt.subplots(len(missing_cols), figsize=(10, 10))
     for ax, col_name in zip(axs, missing_cols):
         data = pd.concat([
@@ -41,12 +48,20 @@ def plot_imputation_graph(imputations: Tuple[str, List[pd.DataFrame]],
         seaborn.kdeplot(data=data, x=col_name, hue="method", ax=ax)
 
 
-def impute_by(values, missing_col_names, estimator):
+def impute_by(values: Union[np.array, pd.DataFrame],
+              missing_col_names: List[str],
+              estimator: base.Estimator) -> pd.DataFrame:
+    """
+    Returns a dataframe that fills null entries of @values according to
+    @estimator. @missing_col_names are labels that will be assigned when
+    created. @values might have columns that doesn't have null values, such that
+    the IterativeImputer class takes advantage of it in order to estimate
+    missing values.
+    """
     indicator = impute.MissingIndicator()
     indicator.fit_transform(values)
 
-    imputer = impute.IterativeImputer(
-        random_state=0, estimator=estimator)
+    imputer = impute.IterativeImputer(random_state=0, estimator=estimator)
     imputed_values = imputer.fit_transform(values)
     imputed_df = pd.DataFrame(imputed_values[:, indicator.features_],
                               columns=missing_col_names)
