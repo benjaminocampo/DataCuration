@@ -125,6 +125,12 @@ imputations = [
 plot_imputation_graph(imputations, missing_cols)
 # %% [markdown]
 """
+### Selección de imputación por todas las columnas
+"""
+# %%
+feature_matrix = np.hstack([feature_matrix.todense(), knn_all_cols])
+# %% [markdown]
+"""
 ## Reducción de dimensionalidad
 """
 # %% [markdown]
