@@ -21,13 +21,13 @@
 Autores: Matías Oria, Antonela Sambuceti, Pamela Pairo, Benjamín Ocampo
 """
 # %%
-from typing import List, Tuple
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn
 from sklearn import preprocessing, impute, neighbors, feature_extraction, pipeline
 from sklearn.experimental import enable_iterative_imputer
+from typing import List, Tuple
 
 
 def plot_imputation_graph(imputations: Tuple[str, List[pd.DataFrame]],
@@ -63,6 +63,10 @@ melb_combined_df
 """
 ## Enconding 
 """
+# %% [markdown]
+"""
+### Dict Vectorizer
+"""
 # %%
 categorical_cols = [
     "housing_room_segment", "housing_bathroom_segment", "housing_type",
@@ -79,6 +83,17 @@ feature_matrix = vectorizer.fit_transform(features)
 feature_matrix
 # %%
 vectorizer.get_feature_names()
+# %% [markdown]
+"""
+### One-Hot Encoding
+"""
+# %%
+ohe = preprocessing.OneHotEncoder(sparse=False)
+feature_matrix_ohe = np.hstack([
+    ohe.fit_transform(melb_combined_df[categorical_cols]),
+    melb_combined_df[numerical_cols]
+])
+feature_matrix_ohe.shape
 # %% [markdown]
 """
 ## Imputación por KNN
