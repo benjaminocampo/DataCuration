@@ -40,7 +40,7 @@ con la configuración dada en `README.md` del repositorio, este paso no es
 necesario.
 """
 # %%
-!pip install geopandas
+# !pip install geopandas
 # %%
 from typing import Tuple, List, Optional
 import pandas as pd
