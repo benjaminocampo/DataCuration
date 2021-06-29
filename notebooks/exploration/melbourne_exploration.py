@@ -320,7 +320,7 @@ plt.ticklabel_format(style='plain', axis='y')
 """
 A excepción de las viviendas con un garage, el resto de categorías pareciera que
 se comportan de manera similar ante la variable precio, por lo tanto se decidió
-no seleccionar `housing_garage_count`. TODO: **corregir xticks**
+no seleccionar `housing_garage_count`.
 """
 # %% [markdown]
 """
@@ -358,18 +358,14 @@ plt.ticklabel_format(style="plain", axis="x")
 """
 Se puede observar la presencia de un valor extremo de 44515. Se decidió eliminar este valor ya que se aleja demasiado del rango de viviendas que se estuvo considerando.
 """
-
 # %%
 big_area = melb_housing_df[
     melb_housing_df['housing_building_area'] > 10000]
 big_area
-
 # %%
 melb_housing_df = melb_housing_df.drop(big_area.index)
-
 # %%
 melb_housing_df[[ "housing_building_area"]].describe()
-
 # %% [markdown]
 """
 ### Tipo de vivienda (`housing_type`)
@@ -761,7 +757,8 @@ identificar un período donde se realizaron ventas de un alto valor.
 """
 # %%
 melb_housing_df = melb_housing_df.assign(
-    housing_date_sold_datetime= pd.to_datetime(melb_housing_df["housing_date_sold_datetime"].dt.strftime("%Y-%m")))
+    housing_date_sold_datetime=pd.to_datetime(
+        melb_housing_df["housing_date_sold_datetime"].dt.strftime("%Y-%m")))
 
 seaborn.lineplot(data=melb_housing_df,
                  x="housing_date_sold_datetime",
@@ -796,10 +793,8 @@ de venta de las casas.
 """
 ### Año de construcción (`housing_year_built`)
 """
-
 # %%
 seaborn.boxenplot(melb_housing_df["housing_year_built"])
-
 # %% [markdown]
 """
 Se observa que los años de construcción de las viviendas se distribuyen entre
@@ -809,19 +804,16 @@ consideró seleccionar el rango que abarca la mayor cantidad de ventas,
 eliminando el valor de vivienda construida en el 1200 por considerar que
 tiene una baja probabilidad de ocurrencia.
 """
-
 # %%
 old_atypical_house = melb_housing_df[
     melb_housing_df['housing_year_built'] < 1800]
 old_atypical_house
-
 # %%
 melb_housing_df = melb_housing_df.drop(old_atypical_house.index)
 # %%
 seaborn.lineplot(data=melb_housing_df,
                  x="housing_year_built",
                  y='housing_price')
-
 # %% [markdown]
 """
 Se observa que las viviendas más antiguas tienen precios de venta más altos en
@@ -831,7 +823,6 @@ que las ventas fueron realizadas en un lapso corto de tiempo (2 años), se
 decidió seleccionar únicamente la variable `housing_year_built` ya que se podría
 obtener la misma información.
 """
-
 # %% [markdown]
 """
 ### Variables seleccionadas
@@ -850,23 +841,21 @@ siguientes variables:
 - Departamento gubernamental (`suburb_council_area`)
 - Nombre de región (`suburb_name`)
 """
-
 # %% [markdown]
 """
 ## Imputación
 """
-
 # %% [markdown]
 """
 ### Departamento gubernamental (`suburb_council_area`) 
 """
-
 # %% [markdown]
 """
-Recordemos que en la notebook `combine_airbnb_dataset.ipynb` se imputaron los
-valores faltantes de la variable `suburb_council_area` en función a la columna
-`suburb`. Sin embargo, quedaron 6 filas sin poder imputar y corresponden a los
-siguientes suburbios.
+Recordemos que en la notebook `combine_airbnb_dataset.ipynb` se agruparon los
+departamentos gubernamentales a los cuales un suburbio pertenece lidiando así
+con algunas entradas que presentaban datos faltantes o diferían en
+`suburb_council_area` para un mismo suburbio. Sin embargo,
+quedaron 6 filas sin poder imputar y corresponden a los siguientes suburbios.
 """
 # %%
 melb_suburb_df[melb_suburb_df["suburb_council_area"].isna()]
@@ -907,28 +896,22 @@ melb_suburb_df[missing_suburbs]
 """
 ### Columnas Dataset Airnb (`suburb_rental_dailyprice`)
 """
-
 # %%
 msno.bar(melb_suburb_df, figsize=(12, 6), fontsize=12, color='steelblue')
-
 # %%
 melb_suburb_df["suburb_rental_dailyprice"].isna().sum()
-
 # %% [markdown]
 """
 Luego de efectuar la combinación con el *Dataset* de Airnb, nos quedaron 114
 valores nulos en la columna `suburb_rental_daylyprice`. A continuación se
 efectúa la imputación de dicha variable.
 """
-
 # %%
 melb_suburb_df["suburb_rental_dailyprice"].describe()
-
 # %%
 plt.figure(figsize=(8, 8))
 seaborn.boxenplot(data=melb_suburb_df, x="suburb_rental_dailyprice")
 plt.ticklabel_format(style="plain", axis="x")
-
 # %% [markdown]
 """
 Podemos ver que la distribución es bastante simétrica (la media y la mediana se
@@ -942,18 +925,14 @@ melb_suburb_df["suburb_rental_dailyprice"] = (
         .fillna(melb_suburb_df["suburb_rental_dailyprice"].mean())
 )
 melb_suburb_df.suburb_rental_dailyprice.isna().sum()
-
-
 # %%
 msno.bar(melb_suburb_df, figsize=(12, 6), fontsize=12, color='steelblue')
-
 # %% [markdown]
 """
 Se observa que ya no existen valores faltantes en la columna
 `suburb_rental_dailyprice`. Para un análisis posterior, se cree que una
 imputación del tipo KNN nos podría dar mayor información sobre esta variable.
 """
-
 # %% [markdown]
 """
 ### Creación del conjunto de datos

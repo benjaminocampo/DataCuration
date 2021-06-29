@@ -43,17 +43,16 @@ en su perfil de Kaggle.
 """
 ## Definición de funciones y constantes *helper*
 A continuación se encuentran las funciones y constantes que se utilizaron
-durante el preprocesamiento. TODO: Agregar docstrings, y especificación de
-tipos.
+durante el preprocesamiento.
 """
 # %%
 from typing import Dict, List
+from nltk import text
 import pandas as pd
 import nltk
 import missingno as msno
 import numpy as np
-from nltk.corpus import stopwords
-from nltk.tokenize import word_tokenize
+from sklearn.neighbors import BallTree
 
 nltk.download("stopwords")
 nltk.download('punkt')
@@ -81,30 +80,38 @@ def replace_columns(df: pd.DataFrame, new_columns: Dict[str, Dict[str, str]]) ->
     return df.rename(columns=new_col_names)
 
 
-def remove_unimportant_words(s: str) -> str:
+def closest_locations(df_centers: pd.DataFrame, df_locations: pd.DataFrame,
+                      k: int) -> np.array:
     """
-    Removes from the string @s all the stopwords, digits, and special chars.
+    Returns a dataset with the index of the k locations
+    in df_locations that are closest to each row in df_centers.
+  
+    Both datasets must have columns latitude and longitude.
     """
-    special_chars = "-.+,[@_!#$%^&*()<>?/\|}{~:]"
-    digits = "0123456789"
-    invalid_chars = special_chars + digits
+    df_centers_ = df_centers.copy()
+    df_locations_ = df_locations.copy()
 
-    reduced_text = "".join(c for c in s if not c in invalid_chars)
+    for column in df_locations_[["latitude", "longitude"]]:
+        df_locations_[f'{column}_rad'] = np.deg2rad(
+            df_locations_[column].values)
+        df_centers_[f'{column}_rad'] = np.deg2rad(df_centers_[column].values)
 
-    reduced_text = " ".join(w.lower() for w in word_tokenize(reduced_text)
-                            if not w.lower() in stopwords)
-    return reduced_text
+    ball = BallTree(df_locations_[["latitude_rad", "longitude_rad"]].values,
+                    metric='haversine')
 
+    _, indices = ball.query(df_centers_[["latitude_rad",
+                                         "longitude_rad"]].values,
+                            k=k)
+    return indices
 
-def frequent_words(text_batch: List[str], threshold: int) -> nltk.FreqDist:
+def concatenate_str_cols(text_batch: pd.DataFrame) -> pd.DataFrame:
     """
-    Gets the @threshold most common words that occurs on @text_batch.
+    For each row concatenates the columns of @text_batch and returns a new dataframe
     """
-    joined_descritions = " ".join(
-        remove_unimportant_words(text) for text in text_batch)
-    tokens = word_tokenize(joined_descritions)
-    return nltk.FreqDist(tokens).most_common(threshold)
-
+    result = text_batch[text_batch.columns[0]]
+    for col in text_batch.columns[1:]:
+        result += "\n" + text_batch[col]
+    return result
 # %% [markdown]
 """
 ## Renombrado de columnas
@@ -229,8 +236,6 @@ melb_suburb_df = (
 melb_suburb_df
 # %% [markdown]
 """
-TODO: Se puede hacer de otra forma? Evitar obtener listas de Python.
-
 De esta forma se obtienen valores únicos para los suburbios, manteniendo todos
 los departamentos a los cuales un suburbio pertenece en listas. También, puede
 verse que al combinar los datos los índices fueron alterados obteniendo un total
@@ -270,12 +275,11 @@ Xie](https://www.kaggle.com/tylerx), disponibles en [una
 publicación]((https://www.kaggle.com/tylerx/melbourne-airbnb-open-data?select=cleansed_listings_dec18.csv))
 en su perfil de Kaggle.
 
-En particular, se agregó información del entorno de las viviendas, o mejor dicho
-de los suburbios en donde se encuentran. Es importante conocer factores de
-calidad de dichas zonas, tales como la seguridad, concurrencia, disponibilidad
-de actividades recreativas, entre otras. Por otro lado, conocer cuál es el
-precio en el que se alquilan las viviendas de una zona por lo general está
-relacionado con cierta garantía de algunos de esos factores.
+En particular, se agregó información del entorno de las viviendas. Es importante
+conocer factores de calidad de dichas zonas, tales como la seguridad,
+concurrencia, disponibilidad de actividades recreativas, entre otras. Por otro
+lado, conocer cuál es el precio en el que se alquilan las viviendas de una zona
+por lo general está relacionado con cierta garantía de algunos de esos factores.
 
 Por ende, de las distintas columnas que se encuentran en el conjunto de datos de
 AirBnB se utilizaron las siguientes:
@@ -283,9 +287,9 @@ AirBnB se utilizaron las siguientes:
 - `zipcode`: El código postal es un buen descriptor que involucra un conjunto de
   suburbios que se encuentran cerca.
 
-- `neighborhood_overview`, `transit`, y `description`: Obtener las palabras más
-  frecuentes que se mencionan en las descripciones de las viviendas, suburbios,
-  y concurrencias, da mucha información sobre los factores de calidad.
+- `neighborhood_overview`: Obtener las palabras más frecuentes que se mencionan
+  en las descripciones de los barrios más cercanos da mucha información sobre
+  los factores de calidad.
 
 - `price`, `weekly_price`, `monthly_price`: Obtener en promedio los precios de
   alquiler de las viviendas de un suburbio, pueden ser relevantes en la
@@ -298,8 +302,12 @@ URL_AIRBNB_DATA = "https://cs.famaf.unc.edu.ar/~mteruel/datasets/diplodatos/clea
 
 interesting_cols = [
     "zipcode",
-    "neighborhood_overview", "transit", "description",
-    "price", "weekly_price", "monthly_price",
+    "neighborhood_overview",
+    "price",
+    "weekly_price",
+    "monthly_price",
+    "latitude",
+    "longitude"
 ]
 
 airbnb_df = pd.read_csv(URL_AIRBNB_DATA, usecols=interesting_cols)
@@ -318,28 +326,28 @@ zipcode_count_df
 airbnb_df = airbnb_df[airbnb_df["zipcode"].isin(
     zipcode_count_df.index[zipcode_count_df > zipcode_count_df.median()])]
 airbnb_df
+# %%
+msno.bar(airbnb_df, figsize=(12, 6), fontsize=12, color='steelblue')
 # %% [markdown]
 """
 Ahora bien, la cantidad de datos faltantes en las variables `weekly_price` y
 `monthly_price` luego de quitar los códigos postales poco frecuentes es mayor al
-80%. Luego les siguen `neighborhood_overview` y `transit` con alrededor del 40%.
-`description` solo presenta una pequeña fracción de datos nulos. Si bien no se
+80%. Luego le sigue `neighborhood_overview` con alrededor del 40%. Si bien no se
 realizará una curación de datos sobre el conjunto de AirBnB hasta luego de
 combinarlo con el original, visualizar estos datos permite considerar si las
 variables elegidas presentan una cantidad de muestras significativa y replantear
 su selección.
 """
 # %%
-msno.bar(airbnb_df, figsize=(12, 6), fontsize=12, color='steelblue')
+msno.matrix(airbnb_df,figsize=(12, 6), fontsize=12, color=[0,0,0.2])
 # %% [markdown]
 """
 `weekly_price` y `monthly_price` presentan datos faltantes situados en la
-categoría MNAR, es decir, a través de alguna perdida sistemática. Por lo tanto,
-son no tenidas en cuenta debido a la poca cantidad de ejemplares. Por otro lado,
-las clumnas `neighborhood_overview` y `transit` parecen ser perdidas aleatorias.
+categoría MNAR, es decir, a través de algúna perdida sistemática. Por lo tanto,
+no son tenidas en cuenta debido a la poca cantidad de ejemplares. Por otro lado,
+los datos faltantes de la columna `neighborhood_overview` parecen ser debido a
+perdidas aleatorias.
 """
-# %%
-msno.matrix(airbnb_df,figsize=(12, 6), fontsize=12, color=[0,0,0.2])
 # %%
 airbnb_df = (
     airbnb_df
@@ -348,40 +356,37 @@ airbnb_df = (
 )
 
 airbnb_df
-# %%
-msno.bar(airbnb_df,figsize=(12, 6), fontsize=12, color='steelblue')
 # %% [markdown]
 """
-Se obtuvo el siguiente conjunto con 12395 datos por cada columna. Se calculó la
-frecuencia de palabras para cada descripción, y el precio promedio de renta por
-día de las viviendas agrupado por código postal.
+
 """
 # %%
-ten_most_freq_words = lambda text_batch: frequent_words(text_batch, 10)
-
-airbnb_df = (
+msno.bar(airbnb_df,figsize=(12, 6), fontsize=12, color='steelblue')
+"""
+Luego de eliminar los valores faltantes para realizar la grupación, se obtuvo un
+*dataframe* con 13554 datos por cada columna. Se calculó el precio promedio de
+renta por día de las viviendas agrupado por código postal.
+"""
+# %%
+airbnb_by_zipcode_df = (
     airbnb_df.groupby("zipcode")
-    .agg(suburb_description_wordcount=(
-             "description", ten_most_freq_words),
-         suburb_neighborhoods_overview_wordcount=(
-             "neighborhood_overview", ten_most_freq_words),
-         suburb_transit_wordcount=("transit", ten_most_freq_words),
-         suburb_rental_dailyprice=("price", "mean"))
+    .agg(suburb_rental_dailyprice=("price", "mean"))
     .reset_index()
     .rename(columns={"zipcode": "suburb_postcode"})
 )
 # %%
-airbnb_df
+airbnb_by_zipcode_df
 # %% [markdown]
 """
-Cabe recalcar nuevamente que solo se incluirá información del suburbio de las
-viviendas por lo tanto los datos deben combinarse con la tabla `melb_suburb_df`.
-Esta es otra de las justificaciones por las cuales es conveniente normalizar
-relaciones de datos. Por ende, para finalizar se combinaron los *dataframes*
-`melb_suburb_df` y `airbnb_df` renombrando la columna `zipcode` de este último.
+Cabe recalcar que `suburb_rental_dailyprice` corresponde a información del
+suburbio de las viviendas que tienen asociado un código postal, por lo tanto los
+datos deben combinarse con la tabla `melb_suburb_df`. Esta es otra de las
+justificaciones por las cuales es conveniente normalizar relaciones de datos.
+Por ende, se combinaron los *dataframes* `melb_suburb_df` y
+`airbnb_by_zipcode_df` renombrando la columna `zipcode` de este último.
 """
 # %%
-melb_suburb_df = melb_suburb_df.merge(airbnb_df,
+melb_suburb_df = melb_suburb_df.merge(airbnb_by_zipcode_df,
                                       how='left',
                                       on="suburb_postcode")
 # %%
@@ -390,10 +395,51 @@ melb_suburb_df
 msno.bar(melb_suburb_df,figsize=(12, 6), fontsize=12, color='steelblue')
 # %% [markdown]
 """
-Notar ahora que los datos faltantes correspondientes luego de combinar los datos
-son debido a aquellos códigos postales que no figuraban en el conjunto de datos
-de AirBnB.
+Notar ahora que los datos faltantes correspondientes luego de combinar
+`suburb_rental_dailyprice` es debido a aquellos códigos postales que no
+figuraban en el conjunto de datos de AirBnB.
+"""
+# %% [markdown]
+"""
+## Otras variables para combinación de datos
+En la sección anterior se utilizó el código postal para combinar la variable de
+precio de renta del *dataframe* de AirBnB. Sin embargo, columnas como el nombre
+del suburbio, o combinación por coordenadas también se podrían haber elegido.
+Con el fin de combinar las descripciones de 5 los barrios más cercanos de una
+propiedad se utilizó esté ultimo método mencionado.
+"""
+# %%
 
+group_size = 5
+col_to_join = 'neighborhood_overview'
+
+airbnb_locations = airbnb_df[['latitude', 'longitude', col_to_join]]
+sales_locations = (
+    melb_housing_df[['housing_lattitude', 'housing_longitude']]
+        .rename(columns={"housing_lattitude": 'latitude',
+                         'housing_longitude': 'longitude'})
+)
+closest_indices = closest_locations(sales_locations,
+                                    airbnb_locations,
+                                    k=group_size)
+
+descriptions = [
+    (
+        airbnb_locations
+            .iloc[closest_indices[:, position]][[col_to_join]]
+            .rename(columns={col_to_join: f"{col_to_join}_{position}"})
+            .reset_index(drop=True)
+    ) for position in range(group_size)
+]
+
+closest_airbnb_descriptions_df = pd.concat(descriptions, axis=1).fillna('')
+ 
+melb_housing_df[f"housing_closest_{col_to_join}"] = concatenate_str_cols(
+    closest_airbnb_descriptions_df)
+# %%
+melb_housing_df
+# %% [markdown]
+"""
 Para finalizar, `melb_suburb_df` y `melb_housing_df` fueron puestos a
 disposición en servidores de FaMAF para su futura exploración. Estos pueden
 encontrarse en:
@@ -402,4 +448,3 @@ encontrarse en:
 - [Datos de
   suburbios](https://www.famaf.unc.edu.ar/~nocampo043/melb_suburb_df.csv)
 """
-# %%
