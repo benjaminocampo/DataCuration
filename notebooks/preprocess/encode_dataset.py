@@ -85,11 +85,8 @@ melb_combined_df
 # %% [markdown]
 """
 ## Enconding
-"""
-# %% [markdown]
-"""
-Con el fin de poder entrenar un modelo bajo las variables en `melb_combined_df`
-se deben codificar aquellas que sean categóricas. Para ello se utiliza *One-Hot
+Con el fin de poder entrenar un modelo bajo las variables en `melb_combined_df`,
+se deben codificar aquellas que sean categóricas. Para ello, se utiliza *One-Hot
 Encoding* donde se muestran dos posibles métodos distintos.
 """
 # %% [markdown]
@@ -120,7 +117,7 @@ muestran por `get_feature_names()`.
 Del total de variables de `melb_combined_df` se excluyen `suburb_name` y
 `suburb_council_area` con el fin de obtener una matriz cuyo espacio en memoria
 no imposibilite la imputación de las variables numéricas `housing_year_built` y
-`housing_building_area` en una sección posterior. A su vez, se presentará otra
+`housing_building_area` en una sección posterior. A su vez, se presentó otra
 forma de realizar una codificación *one-hot* con fin complementario. No
 obstante, se trabajó sobre la matriz dada por el método `Dict Vectorizer`.
 """
@@ -128,8 +125,7 @@ obstante, se trabajó sobre la matriz dada por el método `Dict Vectorizer`.
 """
 ### One-Hot Encoding
 Otro forma posible de obtener la matriz de *features* es por medio de la clase
-`OneHotEncoder` realizando la codificación sobre `categorical_cols` y combinando
-las numéricas que no lo requieren.
+`OneHotEncoder` realizando la codificación sobre `categorical_cols`.
 """
 # %%
 ohe = preprocessing.OneHotEncoder(sparse=False)
@@ -147,10 +143,18 @@ restantes a las numéricas que no requerían este paso.
 # %% [markdown]
 """
 ## Imputación por KNN
+En esta sección se procedió a imputar las variables `housin_year_built` y
+`housing_building_area` con el fin de incluirlas en la matriz de *features*.
+Para ello, se realizaron imputaciones univariadas y multivariadas, es decir,
+utilizando solamente valores no nulos de dichas variables para realizar la
+imputación, en comparación a, aprovechar todos los *features* disponibles en la
+matriz obtenida en la sección anterior. A su vez, esta comparación también se
+realizó estandarizando las variables con el fin de verificar si influía en la
+imputación resultante.
 """
 # %% [markdown]
 """
-### Sin escalado
+### Sin estandarizado
 """
 # %%
 missing_cols = ["housing_year_built", "housing_building_area"]
@@ -162,6 +166,23 @@ all_df = np.hstack([missing_df, feature_matrix.todense()])
 
 knn_missing_cols = impute_by(missing_df, missing_cols, estimator)
 knn_all_cols = impute_by(all_df, missing_cols, estimator)
+# %% [markdown]
+"""
+Para la comparación se crean 3 *dataframes*:
+  - `original_df`: Contiene las columnas de `housing_year_built` y
+    `housing_building_area` eliminando aquellos valores faltantes.
+  - `missing_df`: Similar a `original_df` pero sin eliminar las entradas nulas.
+  - `all_df`: Contiene todas las *features* obtenidas en la sección de
+    codificación junto a las de `missing_df`.
+
+Posteriormente, se procedió a imputar los valores faltantes que ocurren en las
+entradas de `missing_df` y `all_df` por medio de `impute_by`, una de las
+funciones *helper* definidas en la primera sección, generando un nuevo
+*dataframe* con aquellos datos completados con el estimador `KNeighbors`.
+
+Por último ,las distribuciones de las observaciones de los *dataframes*
+resultantes se comparan por medio de un gráfico de densidad.
+"""
 # %%
 imputations = [
     ("original", original_df),
@@ -171,7 +192,15 @@ imputations = [
 plot_imputation_graph(imputations, missing_cols)
 # %% [markdown]
 """
-### Con escalado
+Se puede observar que la destribución de `housing_year_built` luego de imputar
+por medio de todas las columnas captura en mejor medida la tendencia
+correspondiente a su original. Especialmente para aquellas viviendas con poca
+antiguedad al momento de la venta. Similarmente, puede darse la misma
+aceberación para la variable `housing_bulding_area`.
+"""
+# %% [markdown]
+"""
+### Con estandarizado
 """
 # %%
 scaler = preprocessing.StandardScaler()
@@ -190,7 +219,12 @@ imputations = [
 plot_imputation_graph(imputations, missing_cols)
 # %% [markdown]
 """
-### Selección de imputación por todas las columnas
+Escalando los datos de manera previa a la imputación no pareció afectar la
+elección de un método por sobre otro. Se puede observar que la manera en que se
+distribuyen ambas variables es similar al caso anterior salvo por el cambio de
+escala en los ejes x e y. Por lo tanto, se optó por incluir la imputación con
+todas las *features* sin estandarizado previo a la matriz resultante de la
+sección anterior.
 """
 # %%
 feature_matrix = np.hstack([feature_matrix.todense(), knn_all_cols])
