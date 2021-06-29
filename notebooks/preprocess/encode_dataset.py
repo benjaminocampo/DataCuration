@@ -10,8 +10,8 @@
 #       format_version: '1.3'
 #       jupytext_version: 1.11.3
 #   kernelspec:
-#     display_name: Python 3
-#     name: python3
+#     display_name: Python 3.8.5 64-bit ('usr')
+#     name: python385jvsc74a57bd031f2aee4e71d21fbe5cf8b01ff0e069b9275f58929596ceb00d14d90e3e16cd6
 # ---
 
 # %% [markdown]
@@ -26,8 +26,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn
 from sklearn.experimental import enable_iterative_imputer
-from sklearn import (base, feature_extraction, impute, neighbors,
-                     preprocessing)
+from sklearn import (base, decomposition, feature_extraction, impute,
+                     neighbors, preprocessing)
 from typing import List, Tuple, Union
 
 
@@ -50,7 +50,7 @@ def plot_imputation_graph(imputations: List[Tuple[str, pd.DataFrame]],
 
 def impute_by(values: Union[np.array, pd.DataFrame],
               missing_col_names: List[str],
-              estimator: base.Estimator) -> pd.DataFrame:
+              estimator: base.BaseEstimator) -> pd.DataFrame:
     """
     Returns a dataframe that fills null entries of @values according to
     @estimator. @missing_col_names are labels that will be assigned when
@@ -61,7 +61,8 @@ def impute_by(values: Union[np.array, pd.DataFrame],
     indicator = impute.MissingIndicator()
     indicator.fit_transform(values)
 
-    imputer = impute.IterativeImputer(random_state=0, estimator=estimator)
+    imputer = impute.IterativeImputer(
+        random_state=0, estimator=estimator)
     imputed_values = imputer.fit_transform(values)
     imputed_df = pd.DataFrame(imputed_values[:, indicator.features_],
                               columns=missing_col_names)
@@ -159,10 +160,88 @@ plot_imputation_graph(imputations, missing_cols)
 """
 # %%
 feature_matrix = np.hstack([feature_matrix.todense(), knn_all_cols])
+feature_matrix.shape
 # %% [markdown]
 """
 ## Reducción de dimensionalidad
 """
+# %% [markdown]
+"""
+### Análisis de Componentes Principales (PCA)
+Antes de realizar el PCA se realiza la estandarización de los datos, es decir a
+cada dato se le resta su media y se lo divide por el desvío estandar. La
+estandarización permite trabajar con variables medidas en distintas unidades y
+así dar el mismo peso a todas las variables.
+"""
+# %%
+feature_matrix_standarized = preprocessing.StandardScaler().fit_transform(
+    feature_matrix)
+# %% [markdown]
+"""
+A continuación se muestra a modo de ejemplo el cambio de los valores antes y
+después de la estandarización para la fila 6.
+"""
+# %%
+print('\nAntes de estandarizar \n%s' %feature_matrix[5])
+print('\nDespués de estandarizar \n%s' %feature_matrix_standarized[5])
+# %%
+pca = decomposition.PCA(n_components=22)
+principalComponents = pca.fit_transform(feature_matrix_standarized)
+# %% [markdown]
+"""
+Se muestra la varianza explicada por cada componente
+"""
+# %%
+exp_var_pca = pca.explained_variance_ratio_
+exp_var_pca
+# %% [markdown]
+"""
+Para una mejor comprensión se calcula el porcentaje acumulado explicado por cada
+componente. El primer componente explica el 17,09% de la variación. Luego, el
+primer y segundo componente explican el 27.32% de la variación y asi
+sucesivamente.
+"""
+# %%
+var=np.cumsum(np.round(pca.explained_variance_ratio_, decimals=4)*100)
+var
+# %% [markdown]
+"""
+Se eligen las primeras 18 componentes que explican el 98,71% de la variación y
+también a partir de ese valor se llega al plateau.
+"""
+# %%
+plt.figure(figsize=(10, 5))
+plt.ylabel('% de varianza explicada')
+plt.xlabel('Componentes Principales')
+plt.title('PCA')
+plt.ylim(20, 110)
+plt.xticks(range(0, 23))
+plt.style.context('seaborn-whitegrid')
+plt.plot(var)
+# %% [markdown]
+"""
+El siguiente gráfico muestra en conjunto la varianza explicada por cada
+componente (barra) y la varianza acumulada (linea escalonada).
+"""
+# %%
+cum_sum_eigenvalues = np.cumsum(exp_var_pca)
+# %%
+plt.figure(figsize=(10, 5))
+plt.bar(range(0, len(exp_var_pca)),
+        exp_var_pca,
+        alpha=0.5,
+        align='center',
+        label='Varianza explicada individual')
+plt.step(range(0, len(cum_sum_eigenvalues)),
+         cum_sum_eigenvalues,
+         where='mid',
+         label='Varianza explicada acumulada')
+plt.ylabel('Explained variance ratio')
+plt.xlabel('Componentes principales')
+plt.legend(loc='best')
+plt.xticks(range(0, 23))
+plt.tight_layout()
+plt.show()
 # %% [markdown]
 """
 ## Composición del resultado
