@@ -20,6 +20,13 @@
 
 Autores: Matías Oria, Antonela Sambuceti, Pamela Pairo, Benjamín Ocampo
 """
+# %% [markdown]
+"""
+## Definición de funciones *helper*
+Inicialmente se definen funciones que se utilizaron durante la selección e
+imputación de columnas del conjunto de datos obtenido en
+`melbourne_exploration.py` y almacenados en un servidor para su acceso remóto.
+"""
 # %%
 import numpy as np
 import pandas as pd
@@ -77,7 +84,13 @@ melb_combined_df = melb_housing_df.join(melb_suburb_df, on="suburb_id")
 melb_combined_df
 # %% [markdown]
 """
-## Enconding 
+## Enconding
+"""
+# %% [markdown]
+"""
+Con el fin de poder entrenar un modelo bajo las variables en `melb_combined_df`
+se deben codificar aquellas que sean categóricas. Para ello se utiliza *One-Hot
+Encoding* donde se muestran dos posibles métodos distintos.
 """
 # %% [markdown]
 """
@@ -101,7 +114,22 @@ feature_matrix
 vectorizer.get_feature_names()
 # %% [markdown]
 """
+Se obtiene una matriz de $13206 \times 20$ cuyas columnas son las que se
+muestran por `get_feature_names()`.
+
+Del total de variables de `melb_combined_df` se excluyen `suburb_name` y
+`suburb_council_area` con el fin de obtener una matriz cuyo espacio en memoria
+no imposibilite la imputación de las variables numéricas `housing_year_built` y
+`housing_building_area` en una sección posterior. A su vez, se presentará otra
+forma de realizar una codificación *one-hot* con fin complementario. No
+obstante, se trabajó sobre la matriz dada por el método `Dict Vectorizer`.
+"""
+# %% [markdown]
+"""
 ### One-Hot Encoding
+Otro forma posible de obtener la matriz de *features* es por medio de la clase
+`OneHotEncoder` realizando la codificación sobre `categorical_cols` y combinando
+las numéricas que no lo requieren.
 """
 # %%
 ohe = preprocessing.OneHotEncoder(sparse=False)
@@ -110,6 +138,12 @@ feature_matrix_ohe = np.hstack([
     melb_combined_df[numerical_cols]
 ])
 feature_matrix_ohe.shape
+# %% [markdown]
+"""
+De manera similar, se obtiene la matriz codificada donde las primeras 17
+columnas corresponden a la codificación de las variables categóricas, y las 3
+restantes a las numéricas que no requerían este paso.
+"""
 # %% [markdown]
 """
 ## Imputación por KNN
