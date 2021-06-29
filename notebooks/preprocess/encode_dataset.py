@@ -25,7 +25,7 @@ Autores: Matías Oria, Antonela Sambuceti, Pamela Pairo, Benjamín Ocampo
 ## Definición de funciones *helper*
 Inicialmente se definen funciones que se utilizaron durante la selección e
 imputación de columnas del conjunto de datos obtenido en
-`melbourne_exploration.py` y almacenados en un servidor para su acceso remóto.
+`melbourne_exploration.py` y almacenados en un servidor para su acceso remoto.
 """
 # %%
 import numpy as np
@@ -180,7 +180,7 @@ entradas de `missing_df` y `all_df` por medio de `impute_by`, una de las
 funciones *helper* definidas en la primera sección, generando un nuevo
 *dataframe* con aquellos datos completados con el estimador `KNeighbors`.
 
-Por último ,las distribuciones de las observaciones de los *dataframes*
+Por último, las distribuciones de las observaciones de los *dataframes*
 resultantes se comparan por medio de un gráfico de densidad.
 """
 # %%
@@ -192,11 +192,11 @@ imputations = [
 plot_imputation_graph(imputations, missing_cols)
 # %% [markdown]
 """
-Se puede observar que la destribución de `housing_year_built` luego de imputar
+Se puede observar que la distribución de `housing_year_built` luego de imputar
 por medio de todas las columnas captura en mejor medida la tendencia
 correspondiente a su original. Especialmente para aquellas viviendas con poca
-antiguedad al momento de la venta. Similarmente, puede darse la misma
-aceberación para la variable `housing_bulding_area`.
+antigüedad al momento de la venta. Similarmente, puede darse la misma
+aseveración para la variable `housing_bulding_area`.
 """
 # %% [markdown]
 """
@@ -237,7 +237,7 @@ feature_matrix.shape
 """
 ### Análisis de Componentes Principales (PCA)
 Antes de realizar el PCA se realiza la estandarización de los datos, es decir a
-cada dato se le resta su media y se lo divide por el desvío estandar. La
+cada dato se le resta su media y se lo divide por el desvío estándar. La
 estandarización permite trabajar con variables medidas en distintas unidades y
 así dar el mismo peso a todas las variables.
 """
@@ -266,7 +266,7 @@ exp_var_pca
 """
 Para una mejor comprensión se calcula el porcentaje acumulado explicado por cada
 componente. El primer componente explica el 17,09% de la variación. Luego, el
-primer y segundo componente explican el 27.32% de la variación y asi
+primer y segundo componente explican el 27.32% de la variación y así
 sucesivamente.
 """
 # %%
@@ -275,7 +275,7 @@ var
 # %% [markdown]
 """
 Se eligen las primeras 18 componentes que explican el 98,71% de la variación y
-también a partir de ese valor se llega al plateau.
+también a partir de ese valor se llega al plateau. TODO: a la platea? 
 """
 # %%
 plt.figure(figsize=(10, 5))
@@ -289,7 +289,7 @@ plt.plot(var)
 # %% [markdown]
 """
 El siguiente gráfico muestra en conjunto la varianza explicada por cada
-componente (barra) y la varianza acumulada (linea escalonada).
+componente (barra) y la varianza acumulada (línea escalonada).
 """
 # %%
 cum_sum_eigenvalues = np.cumsum(exp_var_pca)

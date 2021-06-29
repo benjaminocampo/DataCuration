@@ -734,7 +734,7 @@ consignas del entregable.
 """
 ### Fecha de venta (`housing_date_sold`)
 El tiempo en el que se vendió una propiedad puede ser relevante si se consideran
-variables como inflación o burbujas inmoboliarias durante el período de venta.
+variables como inflación o burbujas inmobiliarias durante el período de venta.
 Dado que el conjunto de datos corresponden a ventas efectuadas durante los años
 2016 y 2017, es importante saber como fluctuó el precio durante este intervalo.
 Por ende, se trabajó sobre esta variable convirtiendo inicialmente los datos en
@@ -754,7 +754,7 @@ plt.xticks(rotation=45)
 # %% [markdown]
 """
 No se observa una tendencia entre la fecha y el precio de venta. Las propiedades
-vendidas fluctuan entre los 800000 a 120000 con una alta variabilidad que se
+vendidas fluctúan entre los 800000 a 120000 con una alta variabilidad que se
 obtiene probablemente a que se están considerando no solo los años y meses, sino
 también el día de la venta, siendo esto quizás no tan relevante si se desea
 identificar un período donde se realizaron ventas de un alto valor.
@@ -803,10 +803,10 @@ seaborn.boxenplot(melb_housing_df["housing_year_built"])
 # %% [markdown]
 """
 Se observa que los años de construcción de las viviendas se distribuyen entre
-los años 1800 y 2010, con excepción de una sola propiedad construída en el año
+los años 1800 y 2010, con excepción de una sola propiedad construida en el año
 1200. Dado que el objetivo es predecir el precio de venta de las viviendas, se
 consideró seleccionar el rango que abarca la mayor cantidad de ventas,
-eliminando el valor de vivienda construída en el 1200 por considerar que
+eliminando el valor de vivienda construida en el 1200 por considerar que
 tiene una baja probabilidad de ocurrencia.
 """
 
@@ -826,9 +826,9 @@ seaborn.lineplot(data=melb_housing_df,
 """
 Se observa que las viviendas más antiguas tienen precios de venta más altos en
 comparación con las propiedades más nuevas. El año de construcción junto a la
-fecha de venta dan información acerca de la antiguedad de la propiedad. Debido a
+fecha de venta dan información acerca de la antigüedad de la propiedad. Debido a
 que las ventas fueron realizadas en un lapso corto de tiempo (2 años), se
-decidió seleccionar unicamente la variable `housing_year_built` ya que se podría
+decidió seleccionar únicamente la variable `housing_year_built` ya que se podría
 obtener la misma información.
 """
 
@@ -931,7 +931,7 @@ plt.ticklabel_format(style="plain", axis="x")
 
 # %% [markdown]
 """
-Podemos ver que la distribución es bastante simetrica (la media y la mediana se
+Podemos ver que la distribución es bastante simétrica (la media y la mediana se
 encuentran en valores cercanos), por lo cual se imputó esta variable por su
 valor medio.
 """
