@@ -30,9 +30,17 @@ Se trabajó sobre los *dataframes* `melb_suburb_df` y `melb_housing_df` que
 fueron obtenidos en `normalize_melbourne_dataset.ipynb` alojados en un servidor
 de la Universidad Nacional de Córdoba para facilitar su acceso remoto.
 """
+# %% [markdown]
+"""
+En caso de estar trabajando esta notebook desde Google Colab, se debe ejecutar
+la siguiente celda para instalar el paquete `geopandas` ya que no se encuentra
+disponible por defecto y es necesario para algunas visualizaciones de la
+exploración. Si se está utilizando un entorno de Conda junto a Jupyter Notebook
+con la configuración dada en `README.md` del repositorio, este paso no es
+necesario.
+"""
 # %%
-# #!pip install geopandas
-
+!pip install geopandas
 # %%
 from typing import Tuple, List, Optional
 import pandas as pd
@@ -153,7 +161,9 @@ procedió a analizar cuáles son las variables que influyen.
 # %% [markdown]
 """
 ### Precio de venta (`housing_price`)
-
+"""
+# %% [markdown]
+"""
 #### Eliminación de *outliers*
 """
 # %%
