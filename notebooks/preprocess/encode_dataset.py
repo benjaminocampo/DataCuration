@@ -276,7 +276,7 @@ acc_variance_percent
 # %% [markdown]
 """
 Se eligen las primeras 18 componentes que explican el 98,71% de la variación y
-también a partir de ese valor se llega al plateau. TODO: a la platea? 
+también a partir de ese valor se llega al *plateau* (meseta).
 """
 # %%
 plt.figure(figsize=(10, 5))
