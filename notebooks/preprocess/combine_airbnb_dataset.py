@@ -46,18 +46,11 @@ A continuación se encuentran las funciones y constantes que se utilizaron
 durante el preprocesamiento.
 """
 # %%
-from typing import Dict, List
-from nltk import text
 import pandas as pd
-import nltk
 import missingno as msno
 import numpy as np
 from sklearn.neighbors import BallTree
-
-nltk.download("stopwords")
-nltk.download('punkt')
-
-stopwords = set(nltk.corpus.stopwords.words("english"))
+from typing import Dict, List
 
 
 def replace_columns(df: pd.DataFrame, new_columns: Dict[str, Dict[str, str]]) -> pd.DataFrame:
@@ -115,7 +108,7 @@ def concatenate_str_cols(text_batch: pd.DataFrame) -> pd.DataFrame:
 # %% [markdown]
 """
 ## Renombrado de columnas
-Debido a que se manipularán las columnas del conjunto de datos a través de
+Debido a que se manipularon las columnas del conjunto de datos a través de
 Python, se renombraron las columnas para que respeten los [estándares de
 código](https://www.python.org/dev/peps/pep-0008/) del lenguaje de programación
 y caractericen de mejor manera los datos almacenados. En particular, columnas
@@ -211,7 +204,7 @@ En este caso, las entradas para todas las columnas son las mismas salvo la de
 Ahora bien, las entradas distintas no se puede considerar que son
 inconsistentes, ya que hay suburbios en Melbourne que dependen de dos
 departamentos gubernamentales como es el caso de `Alphington`. Por ende, se
-agruparán en listas todos los departamentos a los cuales un suburbio pertenece.
+agruparon en listas todos los departamentos a los cuales un suburbio pertenece.
 Si todas las entradas de un suburbio presentan valores nulos, será dejado como
 faltante para ser imputado en la etapa de curación.
 """
@@ -224,7 +217,6 @@ councils_df = (
              if councils.count() == 0
              else list(councils.dropna()))
 )
-# %%
 councils_df
 # %%
 melb_suburb_df = (
@@ -287,6 +279,9 @@ AirBnB se utilizaron las siguientes:
 - `zipcode`: El código postal es un buen descriptor que involucra un conjunto de
   suburbios que se encuentran cerca.
 
+- `latitude` y `longitude`: Similar a `zipcode` también puede ser utilizado para
+  determinar cercanía entre dos ubicaciones.
+
 - `neighborhood_overview`: Obtener las palabras más frecuentes que se mencionan
   en las descripciones de los barrios más cercanos da mucha información sobre
   los factores de calidad.
@@ -295,9 +290,7 @@ AirBnB se utilizaron las siguientes:
   alquiler de las viviendas de un suburbio, pueden ser relevantes en la
   estimación del costo de una propiedad.
 """
-
 # %%
-
 URL_AIRBNB_DATA = "https://cs.famaf.unc.edu.ar/~mteruel/datasets/diplodatos/cleansed_listings_dec18.csv"
 
 interesting_cols = [
@@ -330,13 +323,12 @@ airbnb_df
 msno.bar(airbnb_df, figsize=(12, 6), fontsize=12, color='steelblue')
 # %% [markdown]
 """
-Ahora bien, la cantidad de datos faltantes en las variables `weekly_price` y
-`monthly_price` luego de quitar los códigos postales poco frecuentes es mayor al
-80%. Luego le sigue `neighborhood_overview` con alrededor del 40%. Si bien no se
-realizará una curación de datos sobre el conjunto de AirBnB hasta luego de
-combinarlo con el original, visualizar estos datos permite considerar si las
-variables elegidas presentan una cantidad de muestras significativa y replantear
-su selección.
+La cantidad de datos faltantes en las variables `weekly_price` y `monthly_price`
+luego de quitar los códigos postales poco frecuentes es mayor al 80%. Luego le
+sigue `neighborhood_overview` con alrededor del 40%. Si bien no se realizará una
+curación de datos sobre el conjunto de AirBnB hasta luego de combinarlo con el
+original, visualizar estos datos permite considerar si las variables elegidas
+presentan una cantidad de muestras significativa y replantear su selección.
 """
 # %%
 msno.matrix(airbnb_df,figsize=(12, 6), fontsize=12, color=[0,0,0.2])
@@ -356,12 +348,9 @@ airbnb_df = (
 )
 
 airbnb_df
-# %% [markdown]
-"""
-
-"""
 # %%
 msno.bar(airbnb_df,figsize=(12, 6), fontsize=12, color='steelblue')
+# %% [markdown]
 """
 Luego de eliminar los valores faltantes para realizar la grupación, se obtuvo un
 *dataframe* con 13554 datos por cada columna. Se calculó el precio promedio de
@@ -374,7 +363,6 @@ airbnb_by_zipcode_df = (
     .reset_index()
     .rename(columns={"zipcode": "suburb_postcode"})
 )
-# %%
 airbnb_by_zipcode_df
 # %% [markdown]
 """
@@ -389,7 +377,6 @@ Por ende, se combinaron los *dataframes* `melb_suburb_df` y
 melb_suburb_df = melb_suburb_df.merge(airbnb_by_zipcode_df,
                                       how='left',
                                       on="suburb_postcode")
-# %%
 melb_suburb_df
 # %%
 msno.bar(melb_suburb_df,figsize=(12, 6), fontsize=12, color='steelblue')
@@ -406,10 +393,9 @@ En la sección anterior se utilizó el código postal para combinar la variable 
 precio de renta del *dataframe* de AirBnB. Sin embargo, columnas como el nombre
 del suburbio, o combinación por coordenadas también se podrían haber elegido.
 Con el fin de combinar las descripciones de 5 los barrios más cercanos de una
-propiedad se utilizó esté ultimo método mencionado.
+propiedad se utilizó esté último método mencionado.
 """
 # %%
-
 group_size = 5
 col_to_join = 'neighborhood_overview'
 
@@ -433,7 +419,7 @@ descriptions = [
 ]
 
 closest_airbnb_descriptions_df = pd.concat(descriptions, axis=1).fillna('')
- 
+
 melb_housing_df[f"housing_closest_{col_to_join}"] = concatenate_str_cols(
     closest_airbnb_descriptions_df)
 # %%
@@ -443,8 +429,14 @@ melb_housing_df
 Para finalizar, `melb_suburb_df` y `melb_housing_df` fueron puestos a
 disposición en servidores de FaMAF para su futura exploración. Estos pueden
 encontrarse en:
+
 - [Datos de
   viviendas](https://www.famaf.unc.edu.ar/~nocampo043/melb_housing_df.csv)
 - [Datos de
   suburbios](https://www.famaf.unc.edu.ar/~nocampo043/melb_suburb_df.csv)
+
+En el directorio `exploration` se continúa a partir de este conjunto de datos
+modificado para determinar que variables son relevantes en la estimación del
+precio venta de una vivienda en Melbourne.
 """
+# %%

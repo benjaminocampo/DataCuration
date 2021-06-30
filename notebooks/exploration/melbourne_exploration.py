@@ -24,20 +24,21 @@ Autores: Matías Oria, Antonela Sambuceti, Pamela Pairo, Benjamín Ocampo
 """
 # %% [markdown]
 """
-## Definición de constantes, funciones *helper*, y lectura del conjunto de datos
+## Definición de funciones *helper*, y lectura del conjunto de datos
 
 Se trabajó sobre los *dataframes* `melb_suburb_df` y `melb_housing_df` que
-fueron obtenidos en `normalize_melbourne_dataset.ipynb` alojados en un servidor
-de la Universidad Nacional de Córdoba para facilitar su acceso remoto.
+fueron obtenidos en el archivo `combine_airbnb_dataset.ipynb` de este mismo
+repositorio siendo alojados en un servidor de la Universidad Nacional de Córdoba
+para facilitar su acceso remoto.
 """
 # %% [markdown]
 """
-En caso de estar trabajando esta notebook desde Google Colab, se debe ejecutar
-la siguiente celda para instalar el paquete `geopandas` ya que no se encuentra
+En caso de estar trabajando esta notebook desde `Google Colab`, se debe ejecutar
+la siguiente celda para instalar el paquete `geopandas`, ya que no se encuentra
 disponible por defecto y es necesario para algunas visualizaciones de la
-exploración. Si se está utilizando un entorno de Conda junto a Jupyter Notebook
-con la configuración dada en `README.md` del repositorio, este paso no es
-necesario.
+exploración. Si se está utilizando un entorno de `Conda` junto a `Jupyter
+Notebook` con la configuración dada en `README.md` del repositorio, este paso no
+es necesario.
 """
 # %%
 # !pip install geopandas
@@ -208,10 +209,10 @@ suburbio, departamento, o el código postal.
 melb_housing_df["housing_address"].value_counts()
 # %% [markdown]
 """
-### Cantidad habitaciones (`housing_bedroom_count`)
+### Cantidad de habitaciones (`housing_bedroom_count`)
 Dado que las variables `housing_bedroom_count`, `housing_room_count` están
-fuertemente correlacionadas se optó por conservar la última de estas porque
-`housing_bedroom_count` proveniene de otro *dataset*.
+fuertemente correlacionadas, se optó por conservar la última de estas porque
+`housing_bedroom_count` proviene de otro *dataset*.
 """
 # %%
 melb_housing_df[
@@ -271,7 +272,7 @@ melb_housing_df.loc[lt_one_bathroom, "housing_bathroom_count"] = 1
 # %% [markdown]
 """
 Ahora bien, para aquellas viviendas que presenten entre 3 a más baños se
-agruparán en una sola categoría con el fin de asegurar que los grupos 1, 2, y 3
+agruparon en una sola categoría con el fin de asegurar que los grupos 1, 2, y 3
 o más baños, presenten una cantidad mínima de registros.
 """
 # %%
@@ -289,13 +290,18 @@ seaborn.catplot(data=melb_housing_df,
                 aspect=2)
 # %% [markdown]
 """
-Se puede observar una disminución en el rango de precios medida que aumenta la
+Se puede observar una disminución en el rango de precios a medida que aumenta la
 cantidad de baños. Si bien el precio máximo es similar, el mínimo aumenta para
 cada categoría.
 """
 # %% [markdown]
 """
 ### Cantidad de garages (`housing_garage_count`)
+
+De manera similar a `housing_bathroom_count`, se procede a agrupar en categorías
+aquellas viviendas que tengan entre 3 a más garages de tal manera que también
+presenten una cantidad mínima de registros comparable con los grupos que tienen
+0, 1, y 2.
 """
 # %%
 melb_housing_df["housing_garage_count"].value_counts()
@@ -356,7 +362,9 @@ plt.ticklabel_format(style="plain", axis="x")
 
 # %% [markdown]
 """
-Se puede observar la presencia de un valor extremo de 44515. Se decidió eliminar este valor ya que se aleja demasiado del rango de viviendas que se estuvo considerando.
+Se puede observar la presencia de un valor extremo de 44515. Se decidió eliminar
+este valor ya que se aleja demasiado del rango de viviendas que se estuvo
+considerando.
 """
 # %%
 big_area = melb_housing_df[
@@ -398,7 +406,7 @@ propiedad.
   780 mil y 1,4 millones. Se observa que los valores máximos son superiores a
   los 2,5 millones.
 
-- Para el caso de `u`, es decir duplex, el precio medio se encuentra en valores
+- Para el caso de `u`, es decir dúplex, el precio medio se encuentra en valores
   cercanos a los 600 mil. Estando el rango intercuartil comprendido entre los
   400 mil y 700 mil. Se observa que los valores máximos son superiores a los 2,5
   millones.
@@ -499,7 +507,7 @@ más altos que otros, por ejemplo el vendedor `Marshall` sobresale por el resto
 con un precio medio de venta de 1,5 millones. Sin embargo, no se puede asegurar
 que el mayor precio de la venta sea por una mejor gestión del vendedor y no por
 otro tipo de variable, como ser el tipo de casa, la ubicación o bien su tamaño o
-composición. Por lo tanto tampoco se decidió seleccionarla.
+composición. Por lo tanto, tampoco se decidió seleccionarla.
 """
 # %% [markdown]
 """
@@ -529,8 +537,7 @@ ocurre con `Eastern Victoria`, `Northern Victoria`, y `Western Victoria`.
 La siguiente tabla muestra que `Southern Metropolitan` es la región en donde se
 registró una mayor cantidad de ventas de viviendas (4377) a diferencia de
 `Eastern Victoria`, `Northern Victoria` y `Western Victoria` que muestran menos
-de
-100.
+de 100.
 """
 # %%
 (
@@ -588,10 +595,11 @@ las que se tiene registro en el conjunto de datos inicial.
 key_regions = [
     region.upper() for region in melb_suburb_df["suburb_region_name"].unique()
 ]
+key_regions
 # %% [markdown]
 """
 De manera similar, se necesita convertir las coordenadas de las propiedades
-vendidas en puntos geométricos de GeoPandas para ser graficados junto a las
+vendidas en puntos geométricos de `GeoPandas` para ser graficados junto a las
 zonas recolectadas. En particular, en este caso serán representados como un
 objeto `POINT`. El *dataframe* subyacente es el siguiente:
 """
@@ -786,15 +794,15 @@ plt.xticks(rotation=45)
 """
 Se puede observar que los precios de venta en promedio son similares en los
 diferentes meses. Por lo tanto, se cree que debido al bajo rango de fechas que
-posee este dataset esta variable no sería significativa para estimar el precio
-de venta de las casas. 
+posee este *dataset* esta variable no sería significativa para estimar el precio
+de venta de las propiedades. 
 """
 # %% [markdown]
 """
 ### Año de construcción (`housing_year_built`)
 """
 # %%
-seaborn.boxenplot(melb_housing_df["housing_year_built"])
+seaborn.boxenplot(data=melb_housing_df, x="housing_year_built")
 # %% [markdown]
 """
 Se observa que los años de construcción de las viviendas se distribuyen entre
@@ -820,7 +828,7 @@ Se observa que las viviendas más antiguas tienen precios de venta más altos en
 comparación con las propiedades más nuevas. El año de construcción junto a la
 fecha de venta dan información acerca de la antigüedad de la propiedad. Debido a
 que las ventas fueron realizadas en un lapso corto de tiempo (2 años), se
-decidió seleccionar únicamente la variable `housing_year_built` ya que se podría
+decidió seleccionar únicamente la variable `housing_year_built`, ya que se podría
 obtener la misma información.
 """
 # %% [markdown]
@@ -894,7 +902,7 @@ melb_suburb_df.loc[missing_suburbs, "suburb_council_area"] = filled_suburbs
 melb_suburb_df[missing_suburbs]
 # %% [markdown]
 """
-### Columnas Dataset Airnb (`suburb_rental_dailyprice`)
+### Columnas del dataset de AirBnB (`suburb_rental_dailyprice`)
 """
 # %%
 msno.bar(melb_suburb_df, figsize=(12, 6), fontsize=12, color='steelblue')
@@ -918,7 +926,6 @@ Podemos ver que la distribución es bastante simétrica (la media y la mediana s
 encuentran en valores cercanos), por lo cual se imputó esta variable por su
 valor medio.
 """
-
 # %%
 melb_suburb_df["suburb_rental_dailyprice"] = (
     melb_suburb_df["suburb_rental_dailyprice"]
@@ -936,8 +943,8 @@ imputación del tipo KNN nos podría dar mayor información sobre esta variable.
 # %% [markdown]
 """
 ### Creación del conjunto de datos
-A continuación, se procedió a remover las columnas no seleccionadas y guardarlo
-en un archivo `.csv`
+A continuación, se procedió a remover las columnas no seleccionadas de
+`melb_suburb_df` y `melb_housing_df` y guardarlos en archivos `.csv`
 """
 # %%
 selected_housing_columns = [
@@ -963,5 +970,4 @@ melb_suburb_filtered_df = melb_suburb_df[selected_suburb_columns]
 # %%
 melb_housing_filtered_df.to_csv("melb_housing_filtered_df.csv", index=False)
 melb_suburb_filtered_df.to_csv("melb_suburb_filtered_df.csv", index=False)
-
 # %%

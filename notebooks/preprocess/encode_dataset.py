@@ -84,7 +84,7 @@ melb_combined_df = melb_housing_df.join(melb_suburb_df, on="suburb_id")
 melb_combined_df
 # %% [markdown]
 """
-## Enconding
+## Encoding
 Con el fin de poder entrenar un modelo bajo las variables en `melb_combined_df`,
 se deben codificar aquellas que sean categóricas. Para ello, se utiliza *One-Hot
 Encoding* donde se muestran dos posibles métodos distintos.
@@ -114,7 +114,7 @@ vectorizer.get_feature_names()
 Se obtiene una matriz de $13206 \times 20$ cuyas columnas son las que se
 muestran por `get_feature_names()`.
 
-Del total de variables de `melb_combined_df` se excluyen `suburb_name` y
+Del total de variables de `melb_combined_df`, se excluyen `suburb_name` y
 `suburb_council_area` con el fin de obtener una matriz cuyo espacio en memoria
 no imposibilite la imputación de las variables numéricas `housing_year_built` y
 `housing_building_area` en una sección posterior. A su vez, se presentó otra
@@ -178,7 +178,7 @@ Para la comparación se crean 3 *dataframes*:
 Posteriormente, se procedió a imputar los valores faltantes que ocurren en las
 entradas de `missing_df` y `all_df` por medio de `impute_by`, una de las
 funciones *helper* definidas en la primera sección, generando un nuevo
-*dataframe* con aquellos datos completados con el estimador `KNeighbors`.
+*dataframe* con aquellos datos completados por el estimador `KNeighbors`.
 
 Por último, las distribuciones de las observaciones de los *dataframes*
 resultantes se comparan por medio de un gráfico de densidad.
@@ -235,9 +235,9 @@ feature_matrix.shape
 """
 # %% [markdown]
 """
-### Análisis de Componentes Principales (PCA)
-Antes de realizar el PCA se realiza la estandarización de los datos, es decir a
-cada dato se le resta su media y se lo divide por el desvío estándar. La
+### Análisis de Componentes Principales (`PCA`)
+Antes de realizar el `PCA` se realiza la estandarización de los datos, es decir
+a cada dato se le resta su media y se lo divide por el desvío estándar. La
 estandarización permite trabajar con variables medidas en distintas unidades y
 así dar el mismo peso a todas las variables.
 """
@@ -313,7 +313,7 @@ plt.show()
 """
 ## Composición del resultado
 Para finalizar, se crea un nuevo *dataframe* que contenga las codificaciones de
-las variables categoricas y numéricas, las imputaciones de columnas que
+las variables categóricas y numéricas, las imputaciones de columnas que
 presentaban valores faltantes, y las primeras 18 componentes principales
 observadas en la sección anterior. El conjunto resultante es puesto a
 disposición para su acceso remoto a través de la siguiente URL:
