@@ -7,7 +7,7 @@ This documentation describe two different ways to start working remotely.
 ### Running in the cloud through Google Colab + GitHub
 
 This method doesn't require any other package or program installed in your
-computer than just you're favourite browser.
+computer than just your favourite browser.
 
 1. First open Google Colaboratory through this link
    <https://colab.research.google.com/> . You'll see that it opens the following
@@ -60,7 +60,7 @@ You can also start with the classic jupyter notebook with:
 conda install -c conda-forge notebook
 ```
 
-(Note: If you're using Windows you can use the Windows Powersheell or Anaconda
+(Note: If you're using Windows, you can use the Windows Powersheell or Anaconda
 Prompt. Since command line usage varies in Windows and Linux, here's a list of
 the most important ones if you're unfamiliar with them:
 <https://www.thomas-krenn.com/en/wiki/Cmd_commands_under_Windows>).
@@ -78,14 +78,14 @@ Installing `git` will depend on your operative system:
 - Installing on Windows: Download the .exe from its main page on
   https://git-scm.com/download/win . Execute it, and follow the steps.
 
-In order to check out that the installation proceded correctly open a terminal
+In order to check out that the installation proceeded correctly, open a terminal
 or Anaconda Prompt and run:
 
 ```bash
 git --version
 ```
 
-If it shows your current git version, you can move on with next step!
+If it shows your current git version, you can move on with the next step!
 
 #### Cloning this repository
 
@@ -98,27 +98,33 @@ git clone https://github.com/benjaminocampo/AyVD.git
 
 #### Setting up a Virtual Environment
 
-In order to install the packages that are necessary to run the notebooks we
-recommend to create a virtual environment so they won't be installed in your
+In order to install the packages that are necessary to run the notebooks, we
+recommend creating a virtual environment, so they won't be installed in your
 global system.
 
-Each directory has an `environment.yml` file that lists the dependencies needed
-to run correctly the notebooks inside it. In the case of the `AyVD` directory,
-the content of this file is:
+Check the `environment.yml` file that lists the dependencies needed to run
+correctly the notebooks in this repository.
 
 ```yml
-name: diplodatos-ayvd
+name: diplodatos-datacuration
+channels:
+  - conda-forge
 dependencies:
   - numpy
   - pandas
   - matplotlib
   - statsmodels
   - seaborn=0.11
+  - missingno
+  - scikit-learn
+  - geopandas
+  - requests
 ```
 
-That means that the environment to create has the name diplodatos-ayvd and the
-dependencies are `seaborn=0.11` and the newest versions of `numpy`, `pandas`,
-`matplotlib`, and `statsmodels`
+That means that the environment to create has the name `diplodatos-datacuration`
+and the dependencies are `seaborn=0.11` and the newest versions of `numpy`,
+`pandas`, `matplotlib`, `statsmodels`, `missigno`, `scikit-learn`, `geopandas`,
+y `requests`.
 
 The steps to create a virtual environment with these dependencies are the
 following:
@@ -137,14 +143,14 @@ following:
 3. Activate the environment in order to have available the dependencies with:
 
     ```bash
-    conda activate diplodatos-ayvd
+    conda activate diplodatos-datacuration
     ```
 
     The active environment is also displayed in front of your prompt in
     (parentheses) or [brackets] like this:
 
     ```bash
-    (diplodatos-ayvd)$
+    (diplodatos-datacuration)$
     ```
 
 4. If you don't have installed ipykernel on your system, run:
@@ -153,10 +159,10 @@ following:
     conda install -c anaconda ipykernel
     ```
 
-    Then, add the active environment to jupyter so its recognized as a new kernel:
+    Then, add the active environment to jupyter so it's recognized as a new kernel:
 
     ```bash
-    ipython kernel install --user --name=diplodatos-ayvd
+    ipython kernel install --user --name=diplodatos-datacuration
     ```
 
 5. Run jupyter lab or jupyter notebook with:
