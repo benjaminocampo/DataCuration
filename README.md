@@ -16,7 +16,7 @@ computer than just your favourite browser.
     ![Welcome Window](docs_images/colab_github_part1.png)
 
 2. Click on the GitHub tab and paste the url of this repository
-   <https://github.com/benjaminocampo/AyVD> on the text blank it shows.
+   <https://github.com/benjaminocampo/DataCuration.git> on the text blank it shows.
    Then click on the search button to check which notebooks are saved in this
    repository.
 
@@ -93,7 +93,7 @@ After installing git, you can clone this repository to have a local version of
 it. Open a terminal in the directory you want to save it and run:
 
 ```bash
-git clone https://github.com/benjaminocampo/AyVD.git
+git clone https://github.com/benjaminocampo/DataCuration.git
 ```
 
 #### Setting up a Virtual Environment
