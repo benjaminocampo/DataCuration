@@ -253,15 +253,16 @@ después de la estandarización para la fila 6.
 print('\nAntes de estandarizar \n%s' %feature_matrix[5])
 print('\nDespués de estandarizar \n%s' %feature_matrix_standarized[5])
 # %%
-pca = decomposition.PCA(n_components=22)
-principalComponents = pca.fit_transform(feature_matrix_standarized)
+_, nof_components = feature_matrix_standarized.shape
+pca = decomposition.PCA(n_components=nof_components)
+principal_components = pca.fit_transform(feature_matrix_standarized)
 # %% [markdown]
 """
 Se muestra la varianza explicada por cada componente
 """
 # %%
-exp_var_pca = pca.explained_variance_ratio_
-exp_var_pca
+explained_variance = pca.explained_variance_ratio_
+explained_variance
 # %% [markdown]
 """
 Para una mejor comprensión se calcula el porcentaje acumulado explicado por cada
@@ -270,8 +271,8 @@ primer y segundo componente explican el 27.32% de la variación y así
 sucesivamente.
 """
 # %%
-var=np.cumsum(np.round(pca.explained_variance_ratio_, decimals=4)*100)
-var
+acc_variance_percent = np.cumsum(np.round(explained_variance, decimals=4) * 100)
+acc_variance_percent
 # %% [markdown]
 """
 Se eligen las primeras 18 componentes que explican el 98,71% de la variación y
@@ -283,34 +284,55 @@ plt.ylabel('% de varianza explicada')
 plt.xlabel('Componentes Principales')
 plt.title('PCA')
 plt.ylim(20, 110)
-plt.xticks(range(0, 23))
-plt.style.context('seaborn-whitegrid')
-plt.plot(var)
+plt.xticks(range(nof_components))
+plt.plot(acc_variance_percent)
 # %% [markdown]
 """
 El siguiente gráfico muestra en conjunto la varianza explicada por cada
 componente (barra) y la varianza acumulada (línea escalonada).
 """
 # %%
-cum_sum_eigenvalues = np.cumsum(exp_var_pca)
-# %%
+acc_variance = np.cumsum(explained_variance)
 plt.figure(figsize=(10, 5))
-plt.bar(range(0, len(exp_var_pca)),
-        exp_var_pca,
+plt.bar(range(len(explained_variance)),
+        explained_variance,
         alpha=0.5,
         align='center',
         label='Varianza explicada individual')
-plt.step(range(0, len(cum_sum_eigenvalues)),
-         cum_sum_eigenvalues,
+plt.step(range(len(acc_variance)),
+         acc_variance,
          where='mid',
          label='Varianza explicada acumulada')
-plt.ylabel('Explained variance ratio')
+plt.ylabel('Radio de varianza explicada')
 plt.xlabel('Componentes principales')
 plt.legend(loc='best')
-plt.xticks(range(0, 23))
+plt.xticks(range(nof_components))
 plt.tight_layout()
 plt.show()
 # %% [markdown]
 """
 ## Composición del resultado
+Para finalizar, se crea un nuevo *dataframe* que contenga las codificaciones de
+las variables categoricas y numéricas, las imputaciones de columnas que
+presentaban valores faltantes, y las primeras 18 componentes principales
+observadas en la sección anterior. El conjunto resultante es puesto a
+disposición para su acceso remoto a través de la siguiente URL:
+- [Codificación del conjunto de
+  datos](https://www.famaf.unc.edu.ar/~nocampo043/encoded_melb_df.csv)
 """
+# %%
+nof_selected_components = 18
+new_columns = vectorizer.get_feature_names()
+
+new_columns = (
+    vectorizer.get_feature_names() + missing_cols +
+    [f"pca_{component_id}" for component_id in range(nof_selected_components)])
+
+encoded_melb_df = pd.DataFrame(
+    data=np.hstack([
+        feature_matrix,
+        principal_components[:, :nof_selected_components]]),
+    columns=new_columns)
+encoded_melb_df
+# %%
+encoded_melb_df.to_csv("encoded_melb_df.csv", index=False)
