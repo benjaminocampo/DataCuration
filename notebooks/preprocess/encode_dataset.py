@@ -275,7 +275,7 @@ acc_variance_percent = np.cumsum(np.round(explained_variance, decimals=4) * 100)
 acc_variance_percent
 # %% [markdown]
 """
-Se eligen las primeras 18 componentes que explican el 98,71% de la variación y
+Se eligen las primeras 17 componentes que explican el 98,71% de la variación y
 también a partir de ese valor se llega al *plateau* (meseta).
 """
 # %%
@@ -314,14 +314,14 @@ plt.show()
 ## Composición del resultado
 Para finalizar, se crea un nuevo *dataframe* que contenga las codificaciones de
 las variables categóricas y numéricas, las imputaciones de columnas que
-presentaban valores faltantes, y las primeras 18 componentes principales
+presentaban valores faltantes, y las primeras 17 componentes principales
 observadas en la sección anterior. El conjunto resultante es puesto a
 disposición para su acceso remoto a través de la siguiente URL:
 - [Codificación del conjunto de
   datos](https://www.famaf.unc.edu.ar/~nocampo043/encoded_melb_df.csv)
 """
 # %%
-nof_selected_components = 18
+nof_selected_components = 17
 new_columns = vectorizer.get_feature_names()
 
 new_columns = (
