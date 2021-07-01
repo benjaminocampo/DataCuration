@@ -13,23 +13,23 @@ computer than just your favourite browser.
    <https://colab.research.google.com/> . You'll see that it opens the following
    window.
 
-    ![Welcome Window](docs_images/colab_github_part1.png)
+    ![Welcome Window](readme_images/colab_github_part1.png)
 
 2. Click on the GitHub tab and paste the url of this repository
    <https://github.com/benjaminocampo/DataCuration.git> on the text blank it shows.
    Then click on the search button to check which notebooks are saved in this
    repository.
 
-    ![GitHub tab](docs_images/colab_github_part2.png)
+    ![GitHub tab](readme_images/colab_github_part2.png)
 
 3. You'll see a list of all the notebooks that are in the repository. Click on
    the one you want to update.
 
-    ![GitHub tab](docs_images/colab_github_part3.png)
+    ![GitHub tab](readme_images/colab_github_part3.png)
 
 4. Then you can start running the notebook!
 
-    ![Notebooks](docs_images/colab_github_part4.png)
+    ![Notebooks](readme_images/colab_github_part4.png)
 
 ### Running locally through Conda + Jupyter + VirtualEnv + Git
 
@@ -171,7 +171,7 @@ following:
     jupyter lab
     ```
 
-    ![jupyter lab](docs_images/conda_jupyter_venv_part4.png)
+    ![jupyter lab](readme_images/conda_jupyter_venv_part4.png)
 
     or
 
@@ -179,7 +179,7 @@ following:
     jupyter notebook
     ```
 
-    ![jupyter notebook](docs_images/conda_jupyter_venv_part5.png)
+    ![jupyter notebook](readme_images/conda_jupyter_venv_part5.png)
 
 6. The previous step should have opened a tab on your browser with the
    application. Open the jupyter notebook you're working on.
@@ -187,8 +187,8 @@ following:
 7. Be sure that jupyter is using the kernel you have just set by choosing
    **Kernel -> Change Kernel**:
 
-    ![jupyter notebook](docs_images/conda_jupyter_venv_part6.png)
+    ![jupyter notebook](readme_images/conda_jupyter_venv_part6.png)
 
-    ![jupyter notebook](docs_images/conda_jupyter_venv_part7.png)
+    ![jupyter notebook](readme_images/conda_jupyter_venv_part7.png)
 
 8. You're ready to do science!
